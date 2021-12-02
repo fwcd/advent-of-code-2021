@@ -1,6 +1,6 @@
 package day02
 
-input = new File('resources/input.txt').text.lines().collect()
+input = getClass().getResource('/input.txt').text.lines().collect()
 
 def part1Command(op, n) {
     switch (op) {
