@@ -1,14 +1,9 @@
 package day02
 
-def input = new File('resources/input.txt').text.lines().collect()
+input = new File('resources/input.txt').text.lines().collect()
 
-def x = 0
-def depth = 0
-
-for (line in input) {
-    def inst = line.split(' ')
-    def n = Integer.parseInt(inst[1])
-    switch (inst[0]) {
+def part1Command(op, n) {
+    switch (op) {
     case 'forward':
         x += n
         break
@@ -23,16 +18,8 @@ for (line in input) {
     }
 }
 
-println "Part 1: ${x * depth}"
-
-x = 0
-depth = 0
-def aim = 0
-
-for (line in input) {
-    def inst = line.split(' ')
-    def n = Integer.parseInt(inst[1])
-    switch (inst[0]) {
+def part2Command(op, n) {
+    switch (op) {
     case 'forward':
         x += n
         depth += aim * n
@@ -48,4 +35,18 @@ for (line in input) {
     }
 }
 
-println "Part 2: ${x * depth}"
+def interpret(command) {
+    x = 0
+    depth = 0
+    aim = 0
+
+    for (line in input) {
+        def (op, rawN) = line.split(' ')
+        command(op, Integer.parseInt(rawN))
+    }
+
+    return x * depth
+}
+
+println "Part 1: ${interpret(this.&part1Command)}"
+println "Part 2: ${interpret(this.&part2Command)}"
