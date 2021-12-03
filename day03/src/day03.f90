@@ -2,12 +2,13 @@ module day03_functions
   implicit none
   contains
 
-  function most_common_bit(i, words) result(b)
+  subroutine most_common_bit(i, words, b)
     implicit none
 
     integer, intent(in) :: i
     integer, intent(in), dimension(:) :: words
-    integer :: b, n, sum, count
+    integer :: n, sum, count
+    integer, intent(out) :: b
 
     ! Count the number of 1s
     sum = 0
@@ -22,7 +23,7 @@ module day03_functions
     else
       b = 0
     end if
-  end function
+  end subroutine
 
   subroutine compute_rating(use_least, words, width, rating)
     integer, dimension(:), intent(in) :: words
@@ -39,7 +40,8 @@ module day03_functions
     end do
 
     do i = width - 1, 0, -1
-      b = ieor(most_common_bit(i, remaining), use_least)
+      call most_common_bit(i, remaining, b)
+      b = ieor(b, use_least)
       print '(I2, B2, 999B7)', i, b, remaining
       remaining = pack(remaining, iand(ishft(remaining, -i), 1) == b)
       print '(I2, B2, 999B7)', i, b, remaining
@@ -58,7 +60,7 @@ program day03
   integer, parameter :: count = 12
   integer, parameter :: width = 5
   integer, dimension(count) :: xs
-  integer :: ios, i, n, gamma_rate, epsilon_rate, oxygen_rating, co2_rating
+  integer :: ios, i, b, n, gamma_rate, epsilon_rate, oxygen_rating, co2_rating
 
   ! Read inputs line-by-line into xs
   open(1, file='resources/input.txt')
@@ -72,7 +74,8 @@ program day03
   gamma_rate = 0
   do i = 0, width - 1
     ! Update out gamma rate with this bit
-    gamma_rate = ior(gamma_rate, ishft(most_common_bit(i, xs), i))
+    call most_common_bit(i, xs, b)
+    gamma_rate = ior(gamma_rate, ishft(b, i))
   end do
 
   ! Compute epsilon rate, which is just the bitwise negation of the gamma rate
