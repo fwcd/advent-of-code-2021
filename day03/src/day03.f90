@@ -2,13 +2,12 @@ module day03_functions
   implicit none
   contains
 
-  subroutine most_common_bit(i, words, b)
+  function most_common_bit(i, words) result(b)
     implicit none
 
     integer, intent(in) :: i
     integer, intent(in), dimension(:) :: words
-    integer :: n, sum, count
-    integer, intent(out) :: b
+    integer :: n, sum, count, b
 
     ! Count the number of 1s
     sum = 0
@@ -23,7 +22,7 @@ module day03_functions
     else
       b = 0
     end if
-  end subroutine
+  end function
 
   subroutine compute_rating(use_least, words, width, rating)
     integer, dimension(:), intent(in) :: words
@@ -40,8 +39,7 @@ module day03_functions
     end do
 
     do i = width - 1, 0, -1
-      call most_common_bit(i, remaining, b)
-      b = ieor(b, use_least)
+      b = ieor(most_common_bit(i, remaining), use_least)
       print '(I2, B2, 999B7)', i, b, remaining
       remaining = pack(remaining, iand(ishft(remaining, -i), 1) == b)
       print '(I2, B2, 999B7)', i, b, remaining
@@ -74,7 +72,7 @@ program day03
   gamma_rate = 0
   do i = 0, width - 1
     ! Update out gamma rate with this bit
-    call most_common_bit(i, xs, b)
+    b = most_common_bit(i, xs)
     gamma_rate = ior(gamma_rate, ishft(b, i))
   end do
 
