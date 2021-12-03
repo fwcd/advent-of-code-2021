@@ -52,8 +52,8 @@ program day03
   use day03_functions
   implicit none
   
-  integer, parameter :: count = 12
-  integer, parameter :: width = 5
+  integer, parameter :: count = 1000
+  integer, parameter :: width = 12
   integer, dimension(count) :: xs
   integer :: ios, i, b, n, gamma_rate, epsilon_rate, oxygen_rating, co2_rating
 
