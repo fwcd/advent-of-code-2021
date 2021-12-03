@@ -18,7 +18,7 @@ module day03_functions
     end do
 
     ! The most common bit is 1 if there are at least (count / 2) of them
-    if (sum >= (count / 2)) then
+    if (2 * sum >= count) then
       b = 1
     else
       b = 0
