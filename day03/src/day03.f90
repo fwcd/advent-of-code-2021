@@ -2,14 +2,15 @@ program day03
   implicit none
   
   integer :: ios
-  character(len=32) :: line
+  integer :: n
+  integer, parameter :: count = 1000
+  integer, dimension(count) :: xs
 
-  open(1, file = 'resources/input.txt')
+  open(1, file='resources/input.txt')
 
-  do
-    read(1, '(A)', iostat=ios) line
+  do n = 1, count
+    read(1, '(B32)', iostat=ios) xs(n)
     if (ios /= 0) exit
-    print *, line
   end do
 
   close(1)
