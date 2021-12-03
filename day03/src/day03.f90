@@ -40,10 +40,7 @@ module day03_functions
 
     do i = width - 1, 0, -1
       b = ieor(most_common_bit(i, remaining), use_least)
-      print '(I2, B2, 999B7)', i, b, remaining
       remaining = pack(remaining, iand(ishft(remaining, -i), 1) == b)
-      print '(I2, B2, 999B7)', i, b, remaining
-      print *
       if (size(remaining) <= 1) exit
     end do
 
@@ -85,6 +82,5 @@ program day03
   call compute_rating(0, xs, width, oxygen_rating)
   call compute_rating(1, xs, width, co2_rating)
 
-  ! FIXME: Find out why part 2 still doesn't compute correctly
-  print *, 'Part 2 (wrong):', oxygen_rating * co2_rating
+  print *, 'Part 2:', oxygen_rating * co2_rating
 end program day03

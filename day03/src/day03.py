@@ -19,10 +19,7 @@ with open('resources/input.txt', 'r') as f:
         remaining = xs
         while i >= 0 and len(remaining) > 1:
             b = most_common_bit(i, remaining) ^ use_least
-            print(b, [bin(x) for x in remaining])
             remaining = [x for x in remaining if ((x >> i) & 1) == b]
-            print(b, [bin(x) for x in remaining])
-            print()
             i -= 1
         return remaining[0]
 
