@@ -40,7 +40,10 @@ module day03_functions
 
     do i = width - 1, 0, -1
       b = ieor(most_common_bit(i, remaining), use_least)
+      print '(I2, B2, 999B7)', i, b, remaining
       remaining = pack(remaining, iand(ishft(remaining, -i), 1) == b)
+      print '(I2, B2, 999B7)', i, b, remaining
+      print *
       if (size(remaining) <= 1) exit
     end do
 
@@ -52,8 +55,8 @@ program day03
   use day03_functions
   implicit none
   
-  integer, parameter :: count = 1000
-  integer, parameter :: width = 12
+  integer, parameter :: count = 12
+  integer, parameter :: width = 5
   integer, dimension(count) :: xs
   integer :: ios, i, n, gamma_rate, epsilon_rate, oxygen_rating, co2_rating
 
