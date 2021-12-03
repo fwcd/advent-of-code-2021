@@ -6,7 +6,7 @@ module day03_functions
     implicit none
 
     integer, intent(in) :: i
-    integer, dimension(:) :: words
+    integer, intent(in), dimension(:) :: words
     integer :: b, n, sum, count
 
     ! Count the number of 1s
@@ -24,10 +24,12 @@ module day03_functions
     end if
   end function
 
-  function compute_rating(use_least, words, width) result(rating)
-    integer, dimension(:) :: words
+  subroutine compute_rating(use_least, words, width, rating)
+    integer, dimension(:), intent(in) :: words
     integer, dimension(:), allocatable :: remaining
-    integer :: use_least, width, i, n, b, count, rating
+    integer, intent(in) :: use_least, width
+    integer :: i, n, b, count
+    integer, intent(out) :: rating
 
     count = size(words)
 
@@ -43,7 +45,7 @@ module day03_functions
     end do
 
     rating = remaining(1)
-  end function
+  end subroutine
 end module
 
 program day03
@@ -76,8 +78,8 @@ program day03
   print *, 'Part 1:', gamma_rate * epsilon_rate
 
   ! Compute oxygen rating and co2 rating
-  oxygen_rating = compute_rating(0, xs, width)
-  co2_rating = compute_rating(1, xs, width)
+  call compute_rating(0, xs, width, oxygen_rating)
+  call compute_rating(1, xs, width, co2_rating)
 
   ! FIXME: Find out why part 2 still doesn't compute correctly
   print *, 'Part 2 (wrong):', oxygen_rating * co2_rating
