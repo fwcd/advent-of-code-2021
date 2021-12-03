@@ -1,0 +1,14 @@
+[
+  {
+    "lang": "clike",
+    "path": "day01/src/day01.m"
+  },
+  {
+    "lang": "groovy",
+    "path": "day02/src/main/groovy/day02/App.groovy"
+  },
+  {
+    "lang": "fortran",
+    "path": "day03/src/day03.f90"
+  }
+]
