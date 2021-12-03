@@ -1,10 +1,32 @@
+function most_common_bit(i, words) result(b)
+  implicit none
+
+  integer, intent(in) :: i
+  integer, parameter :: count = 1000
+  integer, dimension(count) :: words
+  integer :: b, n, sum
+
+  ! Count the number of 1s
+  sum = 0
+  do n = 1, count
+    sum = sum + iand(ishft(words(n), -i), 1)
+  end do
+
+  ! The most common bit is 1 if there are at least (count / 2) of them
+  if (sum >= (count / 2)) then
+    b = 1
+  else
+    b = 0
+  end if
+end function
+
 program day03
   implicit none
   
   integer, parameter :: count = 1000
   integer, parameter :: width = 12
   integer, dimension(count) :: xs
-  integer :: ios, i, n, sum, b, gamma_rate, epsilon_rate
+  integer :: ios, i, n, sum, most_common_bit, gamma_rate, epsilon_rate
 
   ! Read inputs line-by-line into xs
   open(1, file='resources/input.txt')
@@ -17,19 +39,8 @@ program day03
   ! Compute gamma rate
   gamma_rate = 0
   do i = 0, width - 1
-    ! Count the number of 1s
-    sum = 0
-    do n = 1, count
-      sum = sum + iand(ishft(xs(n), -i), 1)
-    end do
-    ! The most common bit is 1 if there are at least (count / 2) of them
-    if (sum >= (count / 2)) then
-      b = 1
-    else
-      b = 0
-    end if
     ! Update out gamma rate with this bit
-    gamma_rate = ior(gamma_rate, ishft(b, i))
+    gamma_rate = ior(gamma_rate, ishft(most_common_bit(i, xs), i))
   end do
 
   ! Compute epsilon rate, which is just the bitwise negation of the gamma rate
