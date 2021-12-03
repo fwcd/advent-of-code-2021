@@ -30,8 +30,8 @@ module day03_functions
     integer :: use_least, width, i, n, b, count, rating
 
     count = size(words)
-    allocate(remaining(count))
 
+    allocate(remaining(count))
     do n = 1, count
       remaining(n) = words(n)
     end do
@@ -39,6 +39,7 @@ module day03_functions
     do i = width - 1, 0, -1
       b = ieor(most_common_bit(i, remaining), use_least)
       remaining = pack(remaining, iand(ishft(remaining, -i), 1) == b)
+      if (size(remaining) <= 1) exit
     end do
 
     rating = remaining(1)
@@ -78,5 +79,6 @@ program day03
   oxygen_rating = compute_rating(0, xs, width)
   co2_rating = compute_rating(1, xs, width)
 
-  print *, 'Part 2:', oxygen_rating * co2_rating
+  ! FIXME: Find out why part 2 still doesn't compute correctly
+  print *, 'Part 2 (wrong):', oxygen_rating * co2_rating
 end program day03
