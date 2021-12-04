@@ -11,7 +11,7 @@ boards <- lapply(raw_boards, function(b) { do.call(rbind, lapply(str_split(str_t
 horizontal_bingo <- function(draws, board) {
   for (i in 1:dim(board)[1]) {
     if (setequal(board[i,], intersect(draws, board[i,]))) {
-      return(sum(board[i,]));
+      return(sum(board[i,]))
     }
   }
   NA
@@ -34,7 +34,7 @@ part1 <- function() {
     for (board in boards) {
       b <- bingo(draws, board)
       if (!is.na(b)) {
-        return((sum(board) - sum(draws)) * all_draws[i])
+        return((sum(board) - sum(intersect(board, draws))) * all_draws[i])
       }
     }
   }
