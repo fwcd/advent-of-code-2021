@@ -27,3 +27,7 @@ My solutions to the [Advent of Code 2021](https://adventofcode.com/2021), writte
 - [ ] Day 23
 - [ ] Day 24
 - [ ] Day 25
+
+## See also
+
+Last year's solutions can be found here: [`advent-of-code-2020`](https://github.com/fwcd/advent-of-code-2020).
