@@ -1,5 +1,5 @@
 .PHONY: run
-run: dependencies
+run:
 	Rscript src/day04.r
 
 .PHONY: dependencies

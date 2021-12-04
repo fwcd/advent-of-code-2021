@@ -1,1 +1,4 @@
-install.packages("readr", repos="http://cran.r-project.org")
+deps <- c("readr", "stringr")
+
+missing <- deps[!deps %in% installed.packages()]
+install.packages(missing, repos="http://cran.r-project.org")
