@@ -1,7 +1,11 @@
 library(readr)
-library(stringr)
 
 input <- read_file("resources/input.txt")
-components <- str_split(input, "\n\n")
+components <- strsplit(input, "\n\n")[[1]]
+draws <- strsplit(components[1], ",")[[1]]
+boards <- strsplit(components[2:length(components)], "\n")
 
-print(components)
+print("Draws")
+print(draws)
+print("Boards")
+print(boards)
