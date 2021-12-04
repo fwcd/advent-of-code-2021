@@ -10,5 +10,9 @@
   {
     "lang": "fortran",
     "path": "day03/src/day03.f90"
+  },
+  {
+    "lang": "r",
+    "path": "day04/src/day04.r"
   }
 ]
