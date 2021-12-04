@@ -28,17 +28,24 @@ bingo <- function(draws, board) {
 
 side_length <- dim(boards[[1]])[1]
 
-part1 <- function() {
+compute_scores <- function() {
+  results <- c()
+  remaining <- 1:length(boards)
   for (i in side_length:length(all_draws)) {
     draws <- all_draws[1:i]
-    for (board in boards) {
+    current_remaining <- remaining
+    for (j in current_remaining) {
+      board <- boards[[j]]
       b <- bingo(draws, board)
       if (!is.na(b)) {
-        return((sum(board) - sum(intersect(board, draws))) * all_draws[i])
+        results[length(results) + 1] = ((sum(board) - sum(intersect(board, draws))) * all_draws[i])
+        remaining = setdiff(remaining, j)
       }
     }
   }
-  NA
+  results
 }
 
-print(str_interp("Part 1: ${part1()}"))
+scores <- compute_scores()
+print(str_interp("Part 1: ${scores[1]}"))
+print(str_interp("Part 2: ${scores[length(scores)]}"))
