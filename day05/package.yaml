@@ -1,0 +1,23 @@
+name:                day05
+version:             0.1.0.0
+github:              "fwcd/advent-of-code-2021"
+license:             BSD3
+author:              "fwcd"
+copyright:           "2021 fwcd"
+
+extra-source-files:
+- README.md
+
+description:         Please see the README on GitHub at <https://github.com/fwcd/advent-of-code-2021#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+executables:
+  day05:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
