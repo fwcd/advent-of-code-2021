@@ -1,6 +1,7 @@
 module Main where
 
-import Control.Monad.State ( State(..), get, put, execState )
+import Control.Monad (when)
+import Control.Monad.State (State(..), get, put, execState)
 import Data.Char (isSpace)
 import Data.List (isPrefixOf)
 import qualified Data.Vector as V
@@ -47,19 +48,20 @@ parseLine raw = Line start end
 insertLine :: Line -> State Grid ()
 insertLine (Line (Point x1 y1) (Point x2 y2)) = do
   Grid d w <- get
-  let updates = flip concatMap [(min x1 x2)..(max x1 x2)] $ \x ->
-                  flip map [(min y1 y2)..(max y1 y2)] $ \y ->
-                    let i = y * w + x
-                    in (i, (d V.! i) + 1)
-  put (Grid (d V.// updates) w)
+  when ((x1 == x2) || (y1 == y2)) $ do
+    let updates = flip concatMap [(min x1 x2)..(max x1 x2)] $ \x ->
+                    flip map [(min y1 y2)..(max y1 y2)] $ \y ->
+                      let i = y * w + x
+                      in (i, (d V.! i) + 1)
+    put (Grid (d V.// updates) w)
 
 part1 :: Grid -> Int
 part1 = count (> 1) . gData
 
 main :: IO ()
 main = do
-  ls <- (parseLine <$>) . lines <$> readFile "resources/demo.txt"
-  let w = maximum (maxSize <$> ls) + 1
-      g = execState (mapM insertLine ls) (Grid (V.replicate (w * w) 0) w)
-  putStrLn $ pretty g
+  ls <- (parseLine <$>) . lines <$> readFile "resources/input.txt"
+  let w  = maximum (maxSize <$> ls) + 1
+      g0 = Grid (V.replicate (w * w) 0) w
+      g  = execState (mapM insertLine ls) g0
   putStrLn $ "Part 1: " ++ show (part1 g)
