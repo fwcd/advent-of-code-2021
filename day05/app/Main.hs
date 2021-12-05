@@ -45,14 +45,20 @@ parseLine :: String -> Line
 parseLine raw = Line start end
   where [start, end] = parsePoint . trim <$> splitOn "->" raw
 
+points :: Line -> [Point]
+points (Line start@(Point x1 y1) end@(Point x2 y2)) = points' start
+  where dx = signum (x2 - x1)
+        dy = signum (y2 - y1)
+        points' p@(Point x y) | p == end  = [end]
+                              | otherwise = p : points' (Point (x + dx) (y + dy))
+
 insertLineIf :: (Line -> Bool) -> Line -> State Grid ()
 insertLineIf f l@(Line (Point x1 y1) (Point x2 y2)) = do
   Grid d w <- get
   when (f l) $ do
-    let updates = flip concatMap [(min x1 x2)..(max x1 x2)] $ \x ->
-                    flip map [(min y1 y2)..(max y1 y2)] $ \y ->
-                      let i = y * w + x
-                      in (i, (d V.! i) + 1)
+    let updates = flip map (points l) $ \(Point x y) ->
+                    let i = y * w + x
+                    in (i, (d V.! i) + 1)
     put (Grid (d V.// updates) w)
 
 insertLine :: Line -> State Grid ()
