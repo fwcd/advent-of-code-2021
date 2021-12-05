@@ -45,23 +45,28 @@ parseLine :: String -> Line
 parseLine raw = Line start end
   where [start, end] = parsePoint . trim <$> splitOn "->" raw
 
-insertLine :: Line -> State Grid ()
-insertLine (Line (Point x1 y1) (Point x2 y2)) = do
+insertLineIf :: (Line -> Bool) -> Line -> State Grid ()
+insertLineIf f l@(Line (Point x1 y1) (Point x2 y2)) = do
   Grid d w <- get
-  when ((x1 == x2) || (y1 == y2)) $ do
+  when (f l) $ do
     let updates = flip concatMap [(min x1 x2)..(max x1 x2)] $ \x ->
                     flip map [(min y1 y2)..(max y1 y2)] $ \y ->
                       let i = y * w + x
                       in (i, (d V.! i) + 1)
     put (Grid (d V.// updates) w)
 
-part1 :: Grid -> Int
-part1 = count (> 1) . gData
+insertLine :: Line -> State Grid ()
+insertLine = insertLineIf (const True)
+
+solution :: Grid -> Int
+solution = count (> 1) . gData
 
 main :: IO ()
 main = do
   ls <- (parseLine <$>) . lines <$> readFile "resources/input.txt"
   let w  = maximum (maxSize <$> ls) + 1
       g0 = Grid (V.replicate (w * w) 0) w
-      g  = execState (mapM insertLine ls) g0
-  putStrLn $ "Part 1: " ++ show (part1 g)
+      g1 = execState (mapM (insertLineIf (\(Line (Point x1 y1) (Point x2 y2)) -> (x1 == x2) || (y1 == y2))) ls) g0
+      g2 = execState (mapM insertLine ls) g0
+  putStrLn $ "Part 1: " ++ show (solution g1)
+  putStrLn $ "Part 2: " ++ show (solution g2)
