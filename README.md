@@ -6,7 +6,7 @@ My solutions to the [Advent of Code 2021](https://adventofcode.com/2021), writte
 - [x] Day 02: Groovy
 - [x] Day 03: Fortran
 - [x] Day 04: R
-- [ ] Day 05
+- [x] Day 05: Haskell
 - [ ] Day 06
 - [ ] Day 07
 - [ ] Day 08
