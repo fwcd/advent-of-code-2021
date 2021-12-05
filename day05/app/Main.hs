@@ -5,9 +5,9 @@ import Data.Char (isSpace)
 import Data.List (isPrefixOf)
 import qualified Data.Vector as V
 
-data Grid = Grid { gData :: V.Vector Int, gWidth :: Int }
-data Point = Point { pX :: Int, pY :: Int }
-data Line = Line { lStart :: Point, lEnd :: Point }
+data Grid = Grid { gData :: V.Vector Int, gWidth :: Int } deriving (Show, Eq)
+data Point = Point { pX :: Int, pY :: Int } deriving (Show, Eq)
+data Line = Line { lStart :: Point, lEnd :: Point } deriving (Show, Eq)
 
 splitOn :: Eq a => [a] -> [a] -> [[a]]
 splitOn p = splitOn' [[]]
@@ -38,4 +38,6 @@ insertLine (Line (Point x1 y1) (Point x2 y2)) = do
   put (Grid (d V.// updates) w)
 
 main :: IO ()
-main = putStrLn "Hello!"
+main = do
+  ls <- (parseLine <$>) . lines <$> readFile "resources/demo.txt"
+  print ls
