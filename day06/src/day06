@@ -23,7 +23,7 @@ simulate() {
     for i in $(seq 0 $(($count-1))); do
       x=${state[$i]}
       if [ $x -eq 0 ]; then
-        # Spawn a new lanternfish
+        # Spawn new lanternfishs
         spawn_count=$(($spawn_count+${counts[$i]}))
         state[$i]=6
       else
