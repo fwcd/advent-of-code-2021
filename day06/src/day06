@@ -3,32 +3,28 @@
 set -e
 cd $(dirname $0)/..
 
-input_file=resources/input.txt
-generations=80
+input_file=resources/demo.txt
 raw_input=$(cat $input_file)
+input=${raw_input//,/ }
 
-# Read input into initial state as array
-state=()
-for x in ${raw_input//,/ }; do
-  state+=($x)
-done
-
-# Perform simulation
-for d in $(seq $generations); do
-  echo "Generation $d"
-  count=${#state[@]}
-  for i in $(seq 0 $(($count-1))); do
-    x=${state[$i]}
-    if [ $x -eq 0 ]; then
-      # Spawn a new lanternfish
-      state+=(8)
-      state[$i]=6
-    else
-      # Decrement the lifetime of the current lanternfish
-      state[$i]=$(($x-1))
-    fi
+simulate() {
+  state=($input)
+  for d in $(seq $1); do
+    # echo "Generation $d"
+    count=${#state[@]}
+    for i in $(seq 0 $(($count-1))); do
+      x=${state[$i]}
+      if [ $x -eq 0 ]; then
+        # Spawn a new lanternfish
+        state+=(8)
+        state[$i]=6
+      else
+        # Decrement the lifetime of the current lanternfish
+        state[$i]=$(($x-1))
+      fi
+    done
   done
-  # echo ${state[@]}
-done
+  echo ${#state[@]}
+}
 
-echo "Part 1: ${#state[@]}"
+echo "Part 1: $(simulate 80)"
