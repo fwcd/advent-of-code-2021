@@ -9,22 +9,38 @@ input=${raw_input//,/ }
 
 simulate() {
   state=($input)
+  counts=()
+
+  # Initialize counts to all ones
+  for i in $(seq ${#state[@]}); do
+    counts+=(1)
+  done
+
+  # Perform the actual simulation
   for d in $(seq $1); do
-    # echo "Generation $d"
     count=${#state[@]}
+    spawn_count=0
     for i in $(seq 0 $(($count-1))); do
       x=${state[$i]}
       if [ $x -eq 0 ]; then
         # Spawn a new lanternfish
-        state+=(8)
+        spawn_count=$(($spawn_count+${counts[$i]}))
         state[$i]=6
       else
         # Decrement the lifetime of the current lanternfish
         state[$i]=$(($x-1))
       fi
     done
+    state+=(8)
+    counts+=($spawn_count)
   done
-  echo ${#state[@]}
+  
+  # Compute sum of counts
+  sum=0
+  for c in ${counts[@]}; do
+    sum=$(($sum+$c))
+  done
+  echo $sum
 }
 
 echo "Part 1: $(simulate 80)"
