@@ -3,7 +3,7 @@
 set -e
 cd $(dirname $0)/..
 
-input_file=resources/demo.txt
+input_file=resources/input.txt
 raw_input=$(cat $input_file)
 input=${raw_input//,/ }
 
@@ -44,3 +44,4 @@ simulate() {
 }
 
 echo "Part 1: $(simulate 80)"
+echo "Part 2: $(simulate 256)"
