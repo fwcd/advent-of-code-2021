@@ -18,5 +18,9 @@
   {
     "lang": "haskell",
     "path": "day05/app/Main.hs"
+  },
+  {
+    "lang": "shell",
+    "path": "day06/src/day06"
   }
 ]
