@@ -22,5 +22,9 @@
   {
     "lang": "shell",
     "path": "day06/src/day06"
+  },
+  {
+    "lang": "elixir",
+    "path": "day07/lib/day07.ex"
   }
 ]

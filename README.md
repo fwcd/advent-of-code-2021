@@ -8,7 +8,7 @@ My solutions to the [Advent of Code 2021](https://adventofcode.com/2021), writte
 - [x] Day 04: R
 - [x] Day 05: Haskell
 - [x] Day 06: Bash
-- [ ] Day 07
+- [ ] Day 07: Elixir
 - [ ] Day 08
 - [ ] Day 09
 - [ ] Day 10
