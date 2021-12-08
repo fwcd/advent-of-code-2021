@@ -141,6 +141,11 @@ CandidateSet computeCandidateSet(Pattern pattern, struct Mappings mappings) {
   CandidateSet candidates = 0;
   for (Digit i = 0; i < DIGITS; i++) {
     if (isCandidate(i, pattern, mappings)) {
+      if (i == 8) {
+        printf("%d is candidate for ", i);
+        printPattern(pattern);
+        printf("\n");
+      }
       candidates |= 1 << i;
     }
   }
@@ -179,13 +184,13 @@ struct Mappings computeMappings(struct Line line) {
         Digit candidate = single(set);
         if (candidate >= 0) {
           // We found a new pattern -> digit mapping
-          completedDigitPatterns[i] = pattern;
+          completedDigitPatterns[candidate] = pattern;
           completedCandidateSets[i] = true;
           // Update mappings for the wirings
           printf("Updating mappings, we know ");
           printPattern(pattern);
-          printf(" -> %d (correct: ", i);
-          printPattern(correctWirings[i]);
+          printf(" -> %d (correct: ", candidate);
+          printPattern(correctWirings[candidate]);
           printf(")\n");
           for (Digit j = 0; j < DIGITS; j++) {
             if (completedCandidateSets[j]) {
