@@ -48,15 +48,15 @@ struct Mappings {
 
 Pattern correctWirings[] = {
   0b1110111, // 0
-  0b0010010, // 1
+  0b0100100, // 1
   0b1011101, // 2
-  0b1011011, // 3
-  0b0111010, // 4
+  0b1101101, // 3
+  0b0101110, // 4
   0b1101011, // 5
-  0b1101111, // 6
-  0b1010010, // 7
+  0b1111011, // 6
+  0b0100101, // 7
   0b1111111, // 8
-  0b1111011  // 9
+  0b1101111  // 9
 };
 
 void printSignalIndex(SignalIndex i) {
@@ -143,9 +143,19 @@ void updateMappings(Pattern pattern, Digit digit, struct Mappings *mappings) {
   printPattern(pattern);
   printf(" -> %d\n", digit);
 
+  printf("Correct: ");
+  printPattern(correctWirings[digit]);
+  printf("\n");
+
   for (SignalIndex i = 0; i < SEGMENTS; i++) {
     if ((pattern >> i) & 1) {
-      mappings->wiringToImpossibleSegments[i] |= correctWirings[i] ^ SEGMENTS_MASK;
+      mappings->wiringToImpossibleSegments[i] |= correctWirings[digit] ^ SEGMENTS_MASK;
+
+      printf("  ");
+      printSignalIndex(i);
+      printf(" -> one of ");
+      printPattern(mappings->wiringToImpossibleSegments[digit] ^ SEGMENTS_MASK);
+      printf("\n");
     }
   }
 }
@@ -229,7 +239,7 @@ struct Line parseLine(char **raw) {
 }
 
 int main(void) {
-  FILE *f = fopen("resources/demo.txt", "r");
+  FILE *f = fopen("resources/mini-demo.txt", "r");
   if (f == NULL) {
     printf("Could not find input file.\n");
     return EXIT_FAILURE;
