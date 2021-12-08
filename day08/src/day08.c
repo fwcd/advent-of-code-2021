@@ -9,8 +9,10 @@
 #define SEGMENTS 7
 #define VALUES 10 // should be max(DIGITS, SEGMENTS)
 
+#define SEGMENTS_MASK ((1 << (SEGMENTS + 1)) - 1)
+
 typedef uint16_t BitSet;
-typedef int8_t Value;
+typedef int16_t Value;
 
 // A bit set where the rightmost bit corresponds to
 // signal a being activated, the next to b being activated, etc.
@@ -39,9 +41,9 @@ struct Display {
 };
 
 struct Mappings {
-  // Maps each (randomly) wired signal to possible
+  // Maps each (randomly) wired signal to impossible
   // segment indices.
-  Pattern wiringToSegments[SEGMENTS];
+  Pattern wiringToImpossibleSegments[SEGMENTS];
 };
 
 Pattern correctWirings[] = {
@@ -56,6 +58,18 @@ Pattern correctWirings[] = {
   0b1111111, // 8
   0b1111011  // 9
 };
+
+void printSignalIndex(SignalIndex i) {
+  printf("%c", 'a' + i);
+}
+
+void printPattern(Pattern p) {
+  for (SignalIndex i = 0; i < SEGMENTS; i++) {
+    if ((p >> i) & 1) {
+      printSignalIndex(i);
+    }
+  }
+}
 
 SignalIndex signalIndex(char c) {
   return (SignalIndex) (c - 'a');
@@ -85,7 +99,8 @@ int size(BitSet x) {
 Pattern translate(Pattern pattern, struct Mappings mappings) {
   Pattern result = 0;
   for (SignalIndex i = 0; i < SEGMENTS; i++) {
-    Pattern segments = mappings.wiringToSegments[i];
+    Pattern impossibleSegments = mappings.wiringToImpossibleSegments[i];
+    Pattern segments = impossibleSegments ^ SEGMENTS_MASK;
     SignalIndex segment = single(segments);
     if (segment >= 0) {
       result |= 1 << segment;
@@ -124,15 +139,19 @@ CandidateSet computeCandidateSet(Pattern pattern, struct Mappings mappings) {
 }
 
 void updateMappings(Pattern pattern, Digit digit, struct Mappings *mappings) {
+  printf("Updating mappings, we know ");
+  printPattern(pattern);
+  printf(" -> %d\n", digit);
+
   for (SignalIndex i = 0; i < SEGMENTS; i++) {
     if ((pattern >> i) & 1) {
-      mappings->wiringToSegments[i] &= correctWirings[i];
+      mappings->wiringToImpossibleSegments[i] |= correctWirings[i] ^ SEGMENTS_MASK;
     }
   }
 }
 
 struct Mappings computeMappings(struct Line line) {
-  struct Mappings mappings = { .wiringToSegments = { 0 } };
+  struct Mappings mappings = { .wiringToImpossibleSegments = { 0 } };
   CandidateSet candidateSets[DIGITS] = { 0 };
   bool completedCandidateSets[DIGITS] = { false };
   bool hasAmbiguousCandidateSets = true;
