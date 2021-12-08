@@ -1,18 +1,5 @@
 #include <stdio.h>
 
-const char *correctWirings[] = {
-  "abcefg",  // 0
-  "cf",      // 1
-  "acdeg",   // 2
-  "acdfg",   // 3
-  "bcdf",    // 4
-  "abdfg",   // 5
-  "abdefg",  // 6
-  "acf",     // 7
-  "abcdefg", // 8
-  "abcdfg"   // 9
-};
-
 struct Pattern {
   char signals[9];
 };
@@ -20,6 +7,19 @@ struct Pattern {
 struct Line {
   struct Pattern digitPatterns[10];
   struct Pattern outputPatterns[4];
+};
+
+struct Pattern correctWirings[] = {
+  { .signals = "abcefg" },  // 0
+  { .signals = "cf" },      // 1
+  { .signals = "acdeg" },   // 2
+  { .signals = "acdfg" },   // 3
+  { .signals = "bcdf" },    // 4
+  { .signals = "abdfg" },   // 5
+  { .signals = "abdefg" },  // 6
+  { .signals = "acf" },     // 7
+  { .signals = "abcdefg" }, // 8
+  { .signals = "abcdfg" }   // 9
 };
 
 struct Pattern parsePattern(char **raw) {
