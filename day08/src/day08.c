@@ -114,10 +114,12 @@ int size(BitSet x) {
 Pattern translate(Pattern pattern, struct Mappings mappings) {
   Pattern result = 0;
   for (SignalIndex i = 0; i < SEGMENTS; i++) {
-    Pattern segments = mappings.wiringToSegments[i];
-    SignalIndex segment = single(segments);
-    if (segment >= 0) {
-      result |= 1 << segment;
+    if ((pattern >> i) & 1) {
+      Pattern segments = mappings.wiringToSegments[i];
+      SignalIndex segment = single(segments);
+      if (segment >= 0) {
+        result |= 1 << segment;
+      }
     }
   }
   return result;
@@ -125,6 +127,9 @@ Pattern translate(Pattern pattern, struct Mappings mappings) {
 
 Digit translateToDigit(Pattern pattern, struct Mappings mappings) {
   Pattern translated = translate(pattern, mappings);
+  if (translated == 0) {
+    return -1;
+  }
   for (Digit i = 0; i < DIGITS; i++) {
     if (correctWirings[i] == translated) {
       return i;
@@ -165,7 +170,27 @@ void updateMappings(Pattern pattern, Digit digit, struct Mappings *mappings) {
   }
 }
 
-struct OptionalMappings solveMappings(struct Mappings mappings) {
+bool areValidMappings(struct Mappings mappings, struct Line line) {
+  bool found[DIGITS] = { false };
+  printf("Trying stuff...\n");
+  for (Digit i = 0; i < DIGITS; i++) {
+    Digit j = translateToDigit(line.digitPatterns[i], mappings);
+    printf("Translated ");
+    printPattern(line.digitPatterns[i]);
+    printf(" to ");
+    printPattern(translate(line.digitPatterns[i], mappings));
+    printf("\n");
+
+    printf("Got %d\n", j);
+    if (j == -1 || found[j]) {
+      return false;
+    }
+    found[j] = true;
+  }
+  return true;
+}
+
+struct OptionalMappings solveMappings(struct Mappings mappings, struct Line line) {
   // Find most unambiguous unsolved mapping
   SignalIndex next = -1;
   Pattern nextPattern = 0;
@@ -184,9 +209,9 @@ struct OptionalMappings solveMappings(struct Mappings mappings) {
     }
   }
 
-  // If there is no such mapping, we've already solved everything!
+  // If there is no such mapping, we might be done.
   if (next == -1) {
-    return (struct OptionalMappings) { .mappings = mappings, .present = true };
+    return (struct OptionalMappings) { .mappings = mappings, .present = areValidMappings(mappings, line) };
   }
 
   // Otherwise try all choices
@@ -202,7 +227,7 @@ struct OptionalMappings solveMappings(struct Mappings mappings) {
       }
 
       // Recurse
-      struct OptionalMappings afterChoice = solveMappings(newMappings);
+      struct OptionalMappings afterChoice = solveMappings(newMappings, line);
 
       if (afterChoice.present) {
         // Solved it!
@@ -258,7 +283,7 @@ struct Mappings computeMappings(struct Line line) {
   } while (foundNewMappings);
 
   // Solve the ambiguous mappings
-  struct OptionalMappings solvedMappings = solveMappings(mappings);
+  struct OptionalMappings solvedMappings = solveMappings(mappings, line);
   if (!solvedMappings.present) {
     printf("Could not solve mappings!\n");
     exit(1);
