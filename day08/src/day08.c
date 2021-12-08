@@ -71,6 +71,16 @@ void printPattern(Pattern p) {
   }
 }
 
+void printMappings(struct Mappings mappings) {
+  for (SignalIndex i = 0; i < SEGMENTS; i++) {
+    printf("  ");
+    printSignalIndex(i);
+    printf(" -> one of ");
+    printPattern(mappings.wiringToSegments[i]);
+    printf("\n");
+  }
+}
+
 SignalIndex signalIndex(char c) {
   return (SignalIndex) (c - 'a');
 }
@@ -138,23 +148,9 @@ CandidateSet computeCandidateSet(Pattern pattern, struct Mappings mappings) {
 }
 
 void updateMappings(Pattern pattern, Digit digit, struct Mappings *mappings) {
-  printf("Updating mappings, we know ");
-  printPattern(pattern);
-  printf(" -> %d\n", digit);
-
-  printf("Correct: ");
-  printPattern(correctWirings[digit]);
-  printf("\n");
-
   for (SignalIndex i = 0; i < SEGMENTS; i++) {
     if ((pattern >> i) & 1) {
       mappings->wiringToSegments[i] &= correctWirings[digit];
-
-      printf("  ");
-      printSignalIndex(i);
-      printf(" -> one of ");
-      printPattern(mappings->wiringToSegments[i]);
-      printf("\n");
     }
   }
 }
@@ -163,6 +159,7 @@ struct Mappings computeMappings(struct Line line) {
   struct Mappings mappings;
   CandidateSet candidateSets[DIGITS] = { 0 };
   bool completedCandidateSets[DIGITS] = { false };
+  Pattern completedDigitPatterns[DIGITS] = { 0 };
   bool hasAmbiguousCandidateSets = true;
 
   // Initialize mappings
@@ -176,12 +173,26 @@ struct Mappings computeMappings(struct Line line) {
     for (Digit i = 0; i < DIGITS; i++) {
       if (!completedCandidateSets[i]) {
         hasAmbiguousCandidateSets = true;
-        CandidateSet set = computeCandidateSet(line.digitPatterns[i], mappings);
+        Pattern pattern = line.digitPatterns[i];
+        CandidateSet set = computeCandidateSet(pattern, mappings);
         candidateSets[i] = set;
         Digit candidate = single(set);
         if (candidate >= 0) {
-          updateMappings(line.digitPatterns[i], candidate, &mappings);
+          // We found a new pattern -> digit mapping
+          completedDigitPatterns[i] = pattern;
           completedCandidateSets[i] = true;
+          // Update mappings for the wirings
+          printf("Updating mappings, we know ");
+          printPattern(pattern);
+          printf(" -> %d (correct: ", i);
+          printPattern(correctWirings[i]);
+          printf(")\n");
+          for (Digit j = 0; j < DIGITS; j++) {
+            if (completedCandidateSets[j]) {
+              updateMappings(completedDigitPatterns[j], j, &mappings);
+            }
+          }
+          printMappings(mappings);
         }
       }
     }
