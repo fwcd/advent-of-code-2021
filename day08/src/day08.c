@@ -4,33 +4,44 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define DIGITS 10
+#define DISPLAY_DIGITS 4
+#define SEGMENTS 7
+#define VALUES 10 // should be max(DIGITS, SEGMENTS)
+
+typedef uint16_t BitSet;
+typedef int8_t Value;
+
 // A bit set where the rightmost bit corresponds to
 // signal a being activated, the next to b being activated, etc.
-typedef uint16_t Pattern;
+typedef BitSet Pattern;
 
 // A bit set where the rightmost bit represents whether
 // a pattern could be a 0, the next whether it could be a 1, etc
-typedef uint16_t CandidateSet;
+typedef BitSet CandidateSet;
 
 // A signal index (0 -> 'a', 1 -> 'b', ...)
-typedef uint8_t SignalIndex;
+typedef Value SignalIndex;
+
+// An actual digit.
+typedef Value Digit;
 
 // An input line corresponding to a 4-digit display wired in
 // a certain random way.
 struct Line {
-  Pattern digitPatterns[10];
-  Pattern outputPatterns[4];
+  Pattern digitPatterns[DIGITS];
+  Pattern outputPatterns[DISPLAY_DIGITS];
 };
 
 // The digits displayed by a 4-digit display.
 struct Display {
-  int outputDigits[4];
+  Digit outputDigits[DISPLAY_DIGITS];
 };
 
 struct Mappings {
-  // Maps the (randomly) wired signal to the correct
-  // segment index. -1 denotes an unknown mapping.
-  SignalIndex wiringToSegment[10];
+  // Maps each (randomly) wired signal to possible
+  // segment indices.
+  Pattern wiringToSegments[SEGMENTS];
 };
 
 Pattern correctWirings[] = {
@@ -47,20 +58,25 @@ Pattern correctWirings[] = {
 };
 
 SignalIndex signalIndex(char c) {
-  return (int) (c - 'a');
+  return (SignalIndex) (c - 'a');
 }
 
-int candidateCount(CandidateSet x) {
+Value single(BitSet x) {
+  Value value;
   int count = 0;
-  for (int i = 0; i < 10; i++) {
-    count += (x >> i) & 1;
+  for (int i = 0; i < VALUES; i++) {
+    int bit = (x >> i) & 1;
+    count += bit;
+    if (bit) {
+      value = i;
+    }
   }
-  return count;
+  return count == 1 ? value : -1;
 }
 
-int signalCount(Pattern x) {
+int size(BitSet x) {
   int count = 0;
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < VALUES; i++) {
     count += (x >> i) & 1;
   }
   return count;
@@ -68,18 +84,19 @@ int signalCount(Pattern x) {
 
 Pattern translate(Pattern pattern, struct Mappings mappings) {
   Pattern result = 0;
-  for (int i = 0; i < 10; i++) {
-    SignalIndex mapping = mappings.wiringToSegment[i];
-    if (mapping >= 0) {
-      result |= 1 << mapping;
+  for (SignalIndex i = 0; i < SEGMENTS; i++) {
+    Pattern segments = mappings.wiringToSegments[i];
+    SignalIndex segment = single(segments);
+    if (segment >= 0) {
+      result |= 1 << segment;
     }
   }
   return result;
 }
 
-int translateToDigit(Pattern pattern, struct Mappings mappings) {
+Digit translateToDigit(Pattern pattern, struct Mappings mappings) {
   Pattern translated = translate(pattern, mappings);
-  for (int i = 0; i < 10; i++) {
+  for (Digit i = 0; i < DIGITS; i++) {
     if (correctWirings[i] == translated) {
       return i;
     }
@@ -87,8 +104,8 @@ int translateToDigit(Pattern pattern, struct Mappings mappings) {
   return -1;
 }
 
-bool isCandidate(int digit, Pattern pattern, struct Mappings mappings) {
-  if (signalCount(correctWirings[digit]) != signalCount(pattern)) {
+bool isCandidate(Digit digit, Pattern pattern, struct Mappings mappings) {
+  if (size(correctWirings[digit]) != size(pattern)) {
     return false;
   }
   Pattern translated = translate(pattern, mappings);
@@ -98,7 +115,7 @@ bool isCandidate(int digit, Pattern pattern, struct Mappings mappings) {
 
 CandidateSet computeCandidateSet(Pattern pattern, struct Mappings mappings) {
   CandidateSet candidates = 0;
-  for (int i = 0; i < 10; i++) {
+  for (Digit i = 0; i < DIGITS; i++) {
     if (isCandidate(i, pattern, mappings)) {
       candidates |= 1 << i;
     }
@@ -106,26 +123,34 @@ CandidateSet computeCandidateSet(Pattern pattern, struct Mappings mappings) {
   return candidates;
 }
 
-struct Mappings computeMappings(struct Line line) {
-  struct Mappings mappings;
-
-  // Initialize all mappings to be empty
-  for (int i = 0; i < sizeof(mappings.wiringToSegment) / sizeof(int); i++) {
-    mappings.wiringToSegment[i] = -1;
+void updateMappings(Pattern pattern, Digit digit, struct Mappings *mappings) {
+  for (SignalIndex i = 0; i < SEGMENTS; i++) {
+    if ((pattern >> i) & 1) {
+      mappings->wiringToSegments[i] &= correctWirings[i];
+    }
   }
+}
 
-  CandidateSet candidateSets[10] = { 0 };
+struct Mappings computeMappings(struct Line line) {
+  struct Mappings mappings = { .wiringToSegments = { 0 } };
+  CandidateSet candidateSets[DIGITS] = { 0 };
+  bool completedCandidateSets[DIGITS] = { false };
   bool hasAmbiguousCandidateSets = true;
 
   // Search until the candidate set for every digit has size 1 (i.e. are unambiguous)
   while (hasAmbiguousCandidateSets) {
-    hasAmbiguousCandidateSets = true;
-    for (int i = 0; i < 10; i++) {
-      CandidateSet set = computeCandidateSet(line.digitPatterns[i], mappings);
-      candidateSets[i] = set;
-      int count = candidateCount(set);
-      assert(count != 0);
-      hasAmbiguousCandidateSets |= count != 1;
+    hasAmbiguousCandidateSets = false;
+    for (Digit i = 0; i < DIGITS; i++) {
+      if (!completedCandidateSets[i]) {
+        hasAmbiguousCandidateSets = true;
+        CandidateSet set = computeCandidateSet(line.digitPatterns[i], mappings);
+        candidateSets[i] = set;
+        Digit candidate = single(set);
+        if (candidate >= 0) {
+          updateMappings(line.digitPatterns[i], candidate, &mappings);
+          completedCandidateSets[i] = true;
+        }
+      }
     }
   }
 
@@ -136,7 +161,7 @@ struct Display computeDisplay(struct Line line) {
   struct Mappings mappings = computeMappings(line);
   struct Display display;
 
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < DISPLAY_DIGITS; i++) {
     display.outputDigits[i] = translateToDigit(line.outputPatterns[i], mappings);
   }
 
