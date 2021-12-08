@@ -12,7 +12,7 @@
 #define SEGMENTS_MASK ((1 << (SEGMENTS + 1)) - 1)
 
 typedef uint16_t BitSet;
-typedef int16_t Value;
+typedef int8_t Value;
 
 // A bit set where the rightmost bit corresponds to
 // signal a being activated, the next to b being activated, etc.
@@ -41,9 +41,9 @@ struct Display {
 };
 
 struct Mappings {
-  // Maps each (randomly) wired signal to impossible
+  // Maps each (randomly) wired signal to possible
   // segment indices.
-  Pattern wiringToImpossibleSegments[SEGMENTS];
+  Pattern wiringToSegments[SEGMENTS];
 };
 
 Pattern correctWirings[] = {
@@ -99,8 +99,7 @@ int size(BitSet x) {
 Pattern translate(Pattern pattern, struct Mappings mappings) {
   Pattern result = 0;
   for (SignalIndex i = 0; i < SEGMENTS; i++) {
-    Pattern impossibleSegments = mappings.wiringToImpossibleSegments[i];
-    Pattern segments = impossibleSegments ^ SEGMENTS_MASK;
+    Pattern segments = mappings.wiringToSegments[i];
     SignalIndex segment = single(segments);
     if (segment >= 0) {
       result |= 1 << segment;
@@ -149,22 +148,27 @@ void updateMappings(Pattern pattern, Digit digit, struct Mappings *mappings) {
 
   for (SignalIndex i = 0; i < SEGMENTS; i++) {
     if ((pattern >> i) & 1) {
-      mappings->wiringToImpossibleSegments[i] |= correctWirings[digit] ^ SEGMENTS_MASK;
+      mappings->wiringToSegments[i] &= correctWirings[digit];
 
       printf("  ");
       printSignalIndex(i);
       printf(" -> one of ");
-      printPattern(mappings->wiringToImpossibleSegments[digit] ^ SEGMENTS_MASK);
+      printPattern(mappings->wiringToSegments[i]);
       printf("\n");
     }
   }
 }
 
 struct Mappings computeMappings(struct Line line) {
-  struct Mappings mappings = { .wiringToImpossibleSegments = { 0 } };
+  struct Mappings mappings;
   CandidateSet candidateSets[DIGITS] = { 0 };
   bool completedCandidateSets[DIGITS] = { false };
   bool hasAmbiguousCandidateSets = true;
+
+  // Initialize mappings
+  for (SignalIndex i = 0; i < SEGMENTS; i++) {
+    mappings.wiringToSegments[i] = SEGMENTS_MASK;
+  }
 
   // Search until the candidate set for every digit has size 1 (i.e. are unambiguous)
   while (hasAmbiguousCandidateSets) {
