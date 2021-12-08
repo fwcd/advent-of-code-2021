@@ -46,6 +46,11 @@ struct Mappings {
   Pattern wiringToSegments[SEGMENTS];
 };
 
+struct OptionalMappings {
+  struct Mappings mappings;
+  bool present;
+};
+
 Pattern correctWirings[] = {
   0b1110111, // 0
   0b0100100, // 1
@@ -160,30 +165,75 @@ void updateMappings(Pattern pattern, Digit digit, struct Mappings *mappings) {
   }
 }
 
+struct OptionalMappings solveMappings(struct Mappings mappings) {
+  // Find most unambiguous unsolved mapping
+  SignalIndex next = -1;
+  Pattern nextPattern = 0;
+  int nextChoices = 10000; // arbitrary large number
+  for (SignalIndex i = 0; i < SEGMENTS; i++) {
+    Pattern pattern = mappings.wiringToSegments[i];
+    int choices = size(pattern);
+    if (choices > 1 && choices < nextChoices) {
+      next = i;
+      nextPattern = pattern;
+      nextChoices = choices;
+    }
+  }
+
+  // If there is no such mapping, we've already solved everything!
+  if (next == -1) {
+    return (struct OptionalMappings) { .mappings = mappings, .present = true };
+  }
+
+  // Otherwise try all choices
+  for (SignalIndex i = 0; i < SEGMENTS; i++) {
+    if ((nextPattern >> i) & 1) {
+      // Choose next -> i
+      struct Mappings newMappings = mappings;
+      newMappings.wiringToSegments[next] = 1 << i;
+      for (SignalIndex j = 0; j < SEGMENTS; j++) {
+        if (j != next) {
+          newMappings.wiringToSegments[j] &= (1 << i) ^ SEGMENTS_MASK;
+        }
+      }
+
+      // Recurse
+      struct OptionalMappings afterChoice = solveMappings(newMappings);
+
+      if (afterChoice.present) {
+        // Solved it!
+        return afterChoice;
+      }
+    }
+  }
+  
+  return (struct OptionalMappings) { .present = false };
+}
+
 struct Mappings computeMappings(struct Line line) {
   struct Mappings mappings;
   CandidateSet candidateSets[DIGITS] = { 0 };
   bool completedCandidateSets[DIGITS] = { false };
   Pattern completedDigitPatterns[DIGITS] = { 0 };
-  bool hasAmbiguousCandidateSets = true;
 
   // Initialize mappings
   for (SignalIndex i = 0; i < SEGMENTS; i++) {
     mappings.wiringToSegments[i] = SEGMENTS_MASK;
   }
 
-  // Search until the candidate set for every digit has size 1 (i.e. are unambiguous)
-  while (hasAmbiguousCandidateSets) {
-    hasAmbiguousCandidateSets = false;
+  // Find the unambiguous mappings first (1, 4, 7, 8)
+  bool foundNewMappings;
+  do {
+    foundNewMappings = false;
     for (Digit i = 0; i < DIGITS; i++) {
       if (!completedCandidateSets[i]) {
-        hasAmbiguousCandidateSets = true;
         Pattern pattern = line.digitPatterns[i];
         CandidateSet set = computeCandidateSet(pattern, mappings);
         candidateSets[i] = set;
         Digit candidate = single(set);
         if (candidate >= 0) {
           // We found a new pattern -> digit mapping
+          foundNewMappings = true;
           completedDigitPatterns[candidate] = pattern;
           completedCandidateSets[i] = true;
           // Update mappings for the wirings
@@ -201,7 +251,9 @@ struct Mappings computeMappings(struct Line line) {
         }
       }
     }
-  }
+  } while (foundNewMappings);
+
+  // Solve the ambiguous mappings
 
   return mappings;
 }
