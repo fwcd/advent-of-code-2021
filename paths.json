@@ -26,5 +26,9 @@
   {
     "lang": "elixir",
     "path": "day07/lib/day07.ex"
+  },
+  {
+    "lang": "clike",
+    "path": "day08/src/day08.c"
   }
 ]
