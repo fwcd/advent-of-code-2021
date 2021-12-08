@@ -151,11 +151,6 @@ CandidateSet computeCandidateSet(Pattern pattern, struct Mappings mappings) {
   CandidateSet candidates = 0;
   for (Digit i = 0; i < DIGITS; i++) {
     if (isCandidate(i, pattern, mappings)) {
-      if (i == 8) {
-        printf("%d is candidate for ", i);
-        printPattern(pattern);
-        printf("\n");
-      }
       candidates |= 1 << i;
     }
   }
@@ -172,16 +167,8 @@ void updateMappings(Pattern pattern, Digit digit, struct Mappings *mappings) {
 
 bool areValidMappings(struct Mappings mappings, struct Line line) {
   bool found[DIGITS] = { false };
-  printf("Trying stuff...\n");
   for (Digit i = 0; i < DIGITS; i++) {
     Digit j = translateToDigit(line.digitPatterns[i], mappings);
-    printf("Translated ");
-    printPattern(line.digitPatterns[i]);
-    printf(" to ");
-    printPattern(translate(line.digitPatterns[i], mappings));
-    printf("\n");
-
-    printf("Got %d\n", j);
     if (j == -1 || found[j]) {
       return false;
     }
@@ -266,17 +253,11 @@ struct Mappings computeMappings(struct Line line) {
           completedDigitPatterns[candidate] = pattern;
           completedCandidateSets[i] = true;
           // Update mappings for the wirings
-          printf("Updating mappings, we know ");
-          printPattern(pattern);
-          printf(" -> %d (correct: ", candidate);
-          printPattern(correctWirings[candidate]);
-          printf(")\n");
           for (Digit j = 0; j < DIGITS; j++) {
             if (completedCandidateSets[j]) {
               updateMappings(completedDigitPatterns[j], j, &mappings);
             }
           }
-          printMappings(mappings);
         }
       }
     }
@@ -287,8 +268,6 @@ struct Mappings computeMappings(struct Line line) {
   if (!solvedMappings.present) {
     printf("Could not solve mappings!\n");
     exit(1);
-  } else {
-    printf("We solved 'em!\n");
   }
 
   return solvedMappings.mappings;
@@ -296,8 +275,6 @@ struct Mappings computeMappings(struct Line line) {
 
 struct Display computeDisplay(struct Line line) {
   struct Mappings mappings = computeMappings(line);
-  printf("Final mappings:\n");
-  printMappings(mappings);
   struct Display display;
 
   for (int i = 0; i < DISPLAY_DIGITS; i++) {
