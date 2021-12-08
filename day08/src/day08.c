@@ -323,19 +323,25 @@ struct Line parseLine(char **raw) {
 }
 
 int main(void) {
-  FILE *f = fopen("resources/mini-demo.txt", "r");
+  FILE *f = fopen("resources/input.txt", "r");
   if (f == NULL) {
     printf("Could not find input file.\n");
     return EXIT_FAILURE;
   }
+
+  int part1 = 0;
+  int part2 = 0;
 
   char raw[1024] = { '\0' };
   while (fgets(raw, sizeof(raw) / sizeof(char), f)) {
     char *parsePtr = raw;
     struct Line line = parseLine(&parsePtr);
     int display = computeDisplay(line);
-    printf("%d\n", display);
+    part2 += display;
   }
+
+  printf("Part 1: %d\n", part1);
+  printf("Part 2: %d\n", part2);
 
   fclose(f);
   return EXIT_SUCCESS;
