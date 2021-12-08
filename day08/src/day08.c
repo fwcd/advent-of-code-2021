@@ -173,6 +173,10 @@ struct OptionalMappings solveMappings(struct Mappings mappings) {
   for (SignalIndex i = 0; i < SEGMENTS; i++) {
     Pattern pattern = mappings.wiringToSegments[i];
     int choices = size(pattern);
+    if (choices == 0) {
+      // If there are no choices, we must have made some incorrect choice earlier
+      return (struct OptionalMappings) { .present = false };
+    }
     if (choices > 1 && choices < nextChoices) {
       next = i;
       nextPattern = pattern;
@@ -254,12 +258,21 @@ struct Mappings computeMappings(struct Line line) {
   } while (foundNewMappings);
 
   // Solve the ambiguous mappings
+  struct OptionalMappings solvedMappings = solveMappings(mappings);
+  if (!solvedMappings.present) {
+    printf("Could not solve mappings!\n");
+    exit(1);
+  } else {
+    printf("We solved 'em!\n");
+  }
 
-  return mappings;
+  return solvedMappings.mappings;
 }
 
 struct Display computeDisplay(struct Line line) {
   struct Mappings mappings = computeMappings(line);
+  printf("Final mappings:\n");
+  printMappings(mappings);
   struct Display display;
 
   for (int i = 0; i < DISPLAY_DIGITS; i++) {
