@@ -35,11 +35,6 @@ struct Line {
   Pattern outputPatterns[DISPLAY_DIGITS];
 };
 
-// The digits displayed by a 4-digit display.
-struct Display {
-  Digit outputDigits[DISPLAY_DIGITS];
-};
-
 struct Mappings {
   // Maps each (randomly) wired signal to possible
   // segment indices.
@@ -273,12 +268,14 @@ struct Mappings computeMappings(struct Line line) {
   return solvedMappings.mappings;
 }
 
-struct Display computeDisplay(struct Line line) {
+int computeDisplay(struct Line line) {
   struct Mappings mappings = computeMappings(line);
-  struct Display display;
+  int display = 0;
+  int n = 1;
 
-  for (int i = 0; i < DISPLAY_DIGITS; i++) {
-    display.outputDigits[i] = translateToDigit(line.outputPatterns[i], mappings);
+  for (int i = DISPLAY_DIGITS - 1; i >= 0; i--) {
+    display += n * translateToDigit(line.outputPatterns[i], mappings);
+    n *= 10;
   }
 
   return display;
@@ -336,8 +333,8 @@ int main(void) {
   while (fgets(raw, sizeof(raw) / sizeof(char), f)) {
     char *parsePtr = raw;
     struct Line line = parseLine(&parsePtr);
-    struct Display display = computeDisplay(line);
-    printf("%d, %d, %d, %d\n", display.outputDigits[0], display.outputDigits[1], display.outputDigits[2], display.outputDigits[3]);
+    int display = computeDisplay(line);
+    printf("%d\n", display);
   }
 
   fclose(f);
