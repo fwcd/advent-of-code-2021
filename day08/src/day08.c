@@ -322,6 +322,18 @@ struct Line parseLine(char **raw) {
   return line;
 }
 
+int count1478s(int x) {
+  int count = 0;
+  while (x > 0) {
+    int d = x % 10;
+    if (d == 1 || d == 4 || d == 7 || d == 8) {
+      count += 1;
+    }
+    x /= 10;
+  }
+  return count;
+}
+
 int main(void) {
   FILE *f = fopen("resources/input.txt", "r");
   if (f == NULL) {
@@ -337,6 +349,7 @@ int main(void) {
     char *parsePtr = raw;
     struct Line line = parseLine(&parsePtr);
     int display = computeDisplay(line);
+    part1 += count1478s(display);
     part2 += display;
   }
 
