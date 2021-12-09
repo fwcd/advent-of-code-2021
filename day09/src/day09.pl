@@ -36,14 +36,14 @@ my @valleys = map {
     my $value = $lava_map[$y][$x];
 
     if ($value < min @neighbors) {
-      $value
+      \@{ [$y, $x] };
     } else {
       @{ [] };
     }
   } (0..($width - 1));
 } (0..($height - 1));
 
-my $part1 = sum map { $_ + 1 } @valleys;
+my $part1 = sum map { $lava_map[@$_[0]][@$_[1]] + 1; } @valleys;
 print "Part 1: $part1\n";
 
 close(FH);
