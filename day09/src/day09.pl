@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use List::Util qw/sum min/;
+use List::Util qw/sum product min/;
 
-open(FH, '<', 'resources/demo.txt') or die $!;
+open(FH, '<', 'resources/input.txt') or die $!;
 
 my $large = 10000;
 my @lava_map = ();
@@ -73,11 +73,17 @@ sub bfs {
   $count;
 }
 
+my @basins = ();
+
 for (@valleys) {
   my $y = @$_[0];
   my $x = @$_[1];
   my $size = bfs $y, $x;
-  print "Basin size: $size\n";
+  push @basins, $size;
 }
+
+my @sorted_basins = sort { $b <=> $a } @basins;
+my $part2 = product @sorted_basins[0..2];
+print "Part 2: $part2\n";
 
 close(FH);
