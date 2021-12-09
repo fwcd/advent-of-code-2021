@@ -30,5 +30,9 @@
   {
     "lang": "clike",
     "path": "day08/src/day08.c"
+  },
+  {
+    "lang": "perl",
+    "path": "day09/src/day09.pl"
   }
 ]
