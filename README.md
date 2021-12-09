@@ -10,7 +10,7 @@ My solutions to the [Advent of Code 2021](https://adventofcode.com/2021), writte
 - [x] Day 06: Bash
 - [x] Day 07: Elixir
 - [x] Day 08: C
-- [ ] Day 09: Perl
+- [x] Day 09: Perl
 - [ ] Day 10
 - [ ] Day 11
 - [ ] Day 12
