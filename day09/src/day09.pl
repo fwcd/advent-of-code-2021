@@ -16,7 +16,7 @@ while (<FH>) {
 my $width = scalar @{ $lava_map[0] };
 my $height = @lava_map;
 
-my @low_indices = map {
+my @valleys = map {
   my $y = $_;
   map {
     my $x = $_;
@@ -33,11 +33,17 @@ my @low_indices = map {
         }
       } (-1..1);
     } (-1..1);
-    my $nc = @neighbors;
+    my $value = $lava_map[$y][$x];
 
-    "($y, $x) (neighbors: $nc) ";
+    if ($value < min @neighbors) {
+      $value
+    } else {
+      @{ [] };
+    }
   } (0..($width - 1));
 } (0..($height - 1));
-print "@low_indices\n";
+
+my $part1 = sum map { $_ + 1 } @valleys;
+print "Part 1: $part1\n";
 
 close(FH);
