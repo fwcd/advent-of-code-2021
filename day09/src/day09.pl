@@ -5,7 +5,6 @@ use List::Util qw/sum product min/;
 
 open(FH, '<', 'resources/input.txt') or die $!;
 
-my $large = 10000;
 my @lava_map = ();
 
 while (<FH>) {
