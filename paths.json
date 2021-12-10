@@ -34,5 +34,9 @@
   {
     "lang": "perl",
     "path": "day09/src/day09.pl"
+  },
+  {
+    "lang": "plaintext",
+    "path": "day10/day10.sb3"
   }
 ]
