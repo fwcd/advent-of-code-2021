@@ -38,5 +38,9 @@
   {
     "lang": "plaintext",
     "path": "day10/day10.sb3"
+  },
+  {
+    "lang": "java",
+    "path": "day11/src/main/java/day11/App.java"
   }
 ]

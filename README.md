@@ -12,7 +12,7 @@ My solutions to the [Advent of Code 2021](https://adventofcode.com/2021), writte
 - [x] Day 08: C
 - [x] Day 09: Perl
 - [x] Day 10: Scratch ([yes, this one](https://en.wikipedia.org/wiki/Scratch_(programming_language)))
-- [ ] Day 11
+- [x] Day 11: Java
 - [ ] Day 12
 - [ ] Day 13
 - [ ] Day 14
