@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 public class App {
     private static final int THRESHOLD = 10;
+    private static final int PART1_STEPS = 100;
 
     public static void main(String[] args) throws IOException {
         List<String> lines = new ArrayList<>();
@@ -28,11 +29,20 @@ public class App {
             .toArray(int[][]::new);
 
         int flashes = 0;
-        for (int i = 0; i < 100; i++) {
-            flashes += step(grid);
+        int firstFullFlash = -1;
+
+        for (int i = 0; firstFullFlash < 0 || i < PART1_STEPS; i++) {
+            int delta = step(grid);
+            if (i < PART1_STEPS) {
+                flashes += delta;
+            }
+            if (delta == (grid.length * grid[0].length)) {
+                firstFullFlash = i + 1;
+            }
         }
 
         System.out.println("Part 1: " + flashes);
+        System.out.println("Part 2: " + firstFullFlash);
     }
 
     private static void increaseEnergy(int[][] grid, int y, int x) {
