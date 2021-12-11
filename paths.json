@@ -5,7 +5,7 @@
   },
   {
     "lang": "groovy",
-    "path": "day02/src/main/groovy/day02/App.groovy"
+    "path": "day02/src/main/groovy/dev/fwcd/adventofcode2021/Day02.groovy"
   },
   {
     "lang": "fortran",
@@ -41,6 +41,6 @@
   },
   {
     "lang": "java",
-    "path": "day11/src/main/java/day11/App.java"
+    "path": "day11/src/main/java/dev/fwcd/adventofcode2021/Day11.java"
   }
 ]
