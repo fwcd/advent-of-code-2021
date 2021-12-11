@@ -3,8 +3,74 @@
  */
 package day11;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class App {
-    public static void main(String[] args) {
-        System.out.println("Hello");
+    private static final int THRESHOLD = 10;
+
+    public static void main(String[] args) throws IOException {
+        List<String> lines = new ArrayList<>();
+        try (var reader = new BufferedReader(new InputStreamReader(App.class.getResourceAsStream("/demo.txt")))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                lines.add(line);
+            }
+        }
+
+        int[][] grid = lines.stream()
+            .map(it -> it.chars().map(c -> Character.digit((char) c, 10)).toArray())
+            .toArray(int[][]::new);
+
+        int flashes = 0;
+        for (int i = 0; i < 10; i++) {
+            System.out.println(gridToString(grid) + "\n");
+            flashes += step(grid);
+        }
+
+        System.out.println("Part 1: " + flashes);
+    }
+
+    private static int step(int[][] grid) {
+        int flashes = 0;
+
+        for (int y = 0; y < grid.length; y++) {
+            for (int x = 0; x < grid[y].length; x++) {
+                grid[y][x]++;
+                if (grid[y][x] >= THRESHOLD) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        for (int dx = -1; dx <= 1; dx++) {
+                            int ny = y + dy;
+                            int nx = x + dx;
+                            if ((dy != 0 || dx != 0) && ny >= 0 && ny < grid.length && nx >= 0 && nx < grid[y].length) {
+                                grid[ny][nx]++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int y = 0; y < grid.length; y++) {
+            for (int x = 0; x < grid[y].length; x++) {
+                if (grid[y][x] >= THRESHOLD) {
+                    grid[y][x] = 0;
+                    flashes++;
+                }
+            }
+        }
+
+        return flashes;
+    }
+
+    private static String gridToString(int[][] grid) {
+        return Arrays.stream(grid)
+            .map(row -> Arrays.stream(row).mapToObj(i -> Integer.toString(i)).collect(Collectors.joining()))
+            .collect(Collectors.joining("\n"));
     }
 }
