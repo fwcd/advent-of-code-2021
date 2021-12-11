@@ -1,4 +1,4 @@
-package day02
+package dev.fwcd.adventofcode2021
 
 input = getClass().getResource('/input.txt').text.lines().collect()
 

@@ -1,4 +1,4 @@
-package day11;
+package dev.fwcd.adventofcode2021;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,13 +8,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class App {
+public class Day11 {
     private static final int THRESHOLD = 10;
     private static final int PART1_STEPS = 100;
 
     public static void main(String[] args) throws IOException {
         List<String> lines = new ArrayList<>();
-        try (var reader = new BufferedReader(new InputStreamReader(App.class.getResourceAsStream("/input.txt")))) {
+        try (var reader = new BufferedReader(new InputStreamReader(Day11.class.getResourceAsStream("/input.txt")))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 lines.add(line);

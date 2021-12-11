@@ -18,5 +18,5 @@ repositories {
 
 application {
     // Define the main class for the application.
-    mainClass = 'day11.App'
+    mainClass = 'dev.fwcd.adventofcode2021.Day11'
 }
