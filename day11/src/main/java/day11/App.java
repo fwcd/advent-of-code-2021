@@ -16,7 +16,7 @@ public class App {
 
     public static void main(String[] args) throws IOException {
         List<String> lines = new ArrayList<>();
-        try (var reader = new BufferedReader(new InputStreamReader(App.class.getResourceAsStream("/demo.txt")))) {
+        try (var reader = new BufferedReader(new InputStreamReader(App.class.getResourceAsStream("/input.txt")))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 lines.add(line);
@@ -28,12 +28,26 @@ public class App {
             .toArray(int[][]::new);
 
         int flashes = 0;
-        for (int i = 0; i < 10; i++) {
-            System.out.println(gridToString(grid) + "\n");
+        for (int i = 0; i < 100; i++) {
             flashes += step(grid);
         }
 
         System.out.println("Part 1: " + flashes);
+    }
+
+    private static void increaseEnergy(int[][] grid, int y, int x) {
+        grid[y][x]++;
+        if (grid[y][x] == THRESHOLD) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    int ny = y + dy;
+                    int nx = x + dx;
+                    if ((dy != 0 || dx != 0) && ny >= 0 && ny < grid.length && nx >= 0 && nx < grid[y].length) {
+                        increaseEnergy(grid, ny, nx);
+                    }
+                }
+            }
+        }
     }
 
     private static int step(int[][] grid) {
@@ -41,18 +55,7 @@ public class App {
 
         for (int y = 0; y < grid.length; y++) {
             for (int x = 0; x < grid[y].length; x++) {
-                grid[y][x]++;
-                if (grid[y][x] >= THRESHOLD) {
-                    for (int dy = -1; dy <= 1; dy++) {
-                        for (int dx = -1; dx <= 1; dx++) {
-                            int ny = y + dy;
-                            int nx = x + dx;
-                            if ((dy != 0 || dx != 0) && ny >= 0 && ny < grid.length && nx >= 0 && nx < grid[y].length) {
-                                grid[ny][nx]++;
-                            }
-                        }
-                    }
-                }
+                increaseEnergy(grid, y, x);
             }
         }
 
