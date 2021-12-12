@@ -63,9 +63,9 @@ part2_dfs_path(V, Es, Path) :-
   \+ start_or_end(TwiceVisitable),
   part2_dfs_path(V, Es, TwiceVisitable, [], [], Path).
 
-part2_paths(Es, SortedPaths) :-
+part2_paths(Es, PathsWithoutDuplicates) :-
   findall(Path, part2_dfs_path(start, Es, Path), Paths),
-  sort(Paths, SortedPaths).
+  sort(Paths, PathsWithoutDuplicates).
 
 % DCG for parsing the input
 
