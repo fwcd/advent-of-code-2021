@@ -27,6 +27,9 @@ dfs_path(V, Es, Visited, [V|Path]) :-
   mark_visit(V, Visited, Visited2),
   dfs_path(W, Es, Visited2, Path).
 
+all_paths(Es, Paths) :-
+  findall(Path, dfs_path(start, Es, [], Path), Paths).
+
 % DCG for parsing the input
 
 dcg_edges([])     --> eos, !.
@@ -38,9 +41,11 @@ dcg_edge(e(V, W)) --> string(VC), "-", string(WC), eol, !,
 % Main program
 
 parse_input(Es) :-
-  phrase_from_file(dcg_edges(Es), 'resources/demo1.txt').
+  phrase_from_file(dcg_edges(Es), 'resources/input.txt').
 
 main :-
   parse_input(Es),
-  dfs_path(start, Es, [], Path),
-  print(Path), nl.
+
+  all_paths(Es, Paths),
+  length(Paths, Part1),
+  print(['Part 1:', Part1]), nl.
