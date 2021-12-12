@@ -4,7 +4,13 @@
 % Graph utils
 
 edge(V, W, [e(V, W)|_]).
+edge(V, W, [e(W, V)|_]).
 edge(V, W, [_|Es]) :- edge(V, W, Es).
+
+remove_edge(_, _, [], []).
+remove_edge(V, W, [e(V, W)|Es], Es) :- !.
+remove_edge(V, W, [e(W, V)|Es], Es) :- !.
+remove_edge(V, W, [E|Es], [E|Fs]) :- remove_edge(V, W, Es, Fs).
 
 % DCG for parsing the input
 
