@@ -16,6 +16,13 @@ remove_edge(V, W, [e(V, W)|Es], Es) :- !.
 remove_edge(V, W, [e(W, V)|Es], Es) :- !.
 remove_edge(V, W, [E|Es], [E|Fs]) :- remove_edge(V, W, Es, Fs).
 
+unsorted_nodes([], []).
+unsorted_nodes([e(V, W)|Es], [V,W|Vs]) :- unsorted_nodes(Es, Vs).
+
+nodes(Es, Ws) :- unsorted_nodes(Es, Vs), sort(Vs, Ws).
+
+node(V, Es) :- nodes(Es, Vs), member(V, Vs).
+
 start_or_end(start).
 start_or_end(end).
 
@@ -26,29 +33,39 @@ small_node(V) :- atom_chars(V, [C|_]), char_type(C, lower).
 part1_mark_visit(V, Visited, [V|Visited]) :- small_node(V), !.
 part1_mark_visit(_, Visited, Visited).
 
-part1_should_visit(V, Visited) :-
-  \+ member(V, Visited).
-
 part1_dfs_path(end, _, _, [end]).
 part1_dfs_path(V, Es, Visited, [V|Path]) :-
   edge(V, W, Es),
-  part1_should_visit(W, Visited),
+  \+ member(W, Visited),
   part1_mark_visit(V, Visited, NewVisited),
   part1_dfs_path(W, Es, NewVisited, Path).
 
-part2_mark_visit(V, VisitedOnce, VisitedTwice, VisitedOnce, [V|VisitedTwice]) :- small_node(V), member(V, VisitedOnce), !.
-part2_mark_visit(V, VisitedOnce, VisitedTwice, [V|VisitedOnce], VisitedTwice) :- small_node(V), !.
-part2_mark_visit(_, VisitedOnce, VisitedTwice, VisitedOnce, VisitedTwice).
+part1_dfs_path(V, Es, Path) :-
+  part1_dfs_path(V, Es, [], Path).
 
-part2_should_visit(V, VisitedOnce, VisitedTwice) :- (start_or_end(V); length(VisitedTwice, L), L >= 1), !, \+ member(V, VisitedOnce), \+ member(V, VisitedTwice).
-part2_should_visit(V, _, VisitedTwice) :- \+ member(V, VisitedTwice).
+part1_paths(Es, Paths) :-
+  findall(Path, part1_dfs_path(start, Es, Path), Paths).
 
-part2_dfs_path(end, _, _, _, [end]).
-part2_dfs_path(V, Es, VisitedOnce, VisitedTwice, [V|Path]) :-
+part2_mark_visit(V, V, VisitedOnce, VisitedTwice, [V|VisitedOnce], VisitedTwice) :- \+ member(V, VisitedOnce), !.
+part2_mark_visit(V, _, VisitedOnce, VisitedTwice, VisitedOnce, [V|VisitedTwice]) :- small_node(V), !.
+part2_mark_visit(_, _, VisitedOnce, VisitedTwice, VisitedOnce, VisitedTwice).
+
+part2_dfs_path(end, _, _, _, _, [end]).
+part2_dfs_path(V, Es, TwiceVisitable, VisitedOnce, VisitedTwice, [V|Path]) :-
   edge(V, W, Es),
-  part2_should_visit(W, VisitedOnce, VisitedTwice),
-  part2_mark_visit(V, VisitedOnce, VisitedTwice, NewVisitedOnce, NewVisitedTwice),
-  part2_dfs_path(W, Es, NewVisitedOnce, NewVisitedTwice, Path).
+  \+ member(W, VisitedTwice),
+  part2_mark_visit(V, TwiceVisitable, VisitedOnce, VisitedTwice, NewVisitedOnce, NewVisitedTwice),
+  part2_dfs_path(W, Es, TwiceVisitable, NewVisitedOnce, NewVisitedTwice, Path).
+
+part2_dfs_path(V, Es, Path) :-
+  node(TwiceVisitable, Es),
+  small_node(TwiceVisitable),
+  \+ start_or_end(TwiceVisitable),
+  part2_dfs_path(V, Es, TwiceVisitable, [], [], Path).
+
+part2_paths(Es, SortedPaths) :-
+  findall(Path, part2_dfs_path(start, Es, Path), Paths),
+  sort(Paths, SortedPaths).
 
 % DCG for parsing the input
 
@@ -61,7 +78,7 @@ dcg_edge(e(V, W)) --> string(VC), "-", string(WC), eol, !,
 % Main program
 
 parse_input(Es) :-
-  phrase_from_file(dcg_edges(Es), 'resources/demo2.txt').
+  phrase_from_file(dcg_edges(Es), 'resources/input.txt').
 
 println(X) :-
   print(X), nl.
@@ -69,10 +86,10 @@ println(X) :-
 main :-
   parse_input(Es),
 
-  findall(Path, part1_dfs_path(start, Es, [], Path), Paths1),
+  part1_paths(Es, Paths1),
   length(Paths1, Part1),
   println(['Part 1:', Part1]),
 
-  findall(Path, part2_dfs_path(start, Es, [], [], Path), Paths2),
+  part2_paths(Es, Paths2),
   length(Paths2, Part2),
   println(['Part 2:', Part2]).
