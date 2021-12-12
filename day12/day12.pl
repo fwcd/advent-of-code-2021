@@ -4,9 +4,6 @@
 
 % Graph utils
 
-% For convenience, we also use graphs to represent
-% associative arrays, such as the 'Visited' dictionary later.
-
 edge(V, W, [e(V, W)|_]).
 edge(V, W, [e(W, V)|_]).
 edge(V, W, [_|Es]) :- edge(V, W, Es).
