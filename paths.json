@@ -42,5 +42,9 @@
   {
     "lang": "java",
     "path": "day11/src/main/java/dev/fwcd/adventofcode2021/Day11.java"
+  },
+  {
+    "lang": "prolog",
+    "path": "day12/day12.pl"
   }
 ]
