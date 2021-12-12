@@ -1,3 +1,4 @@
+:- use_module(library(lists)).
 :- use_module(library(pio)).
 :- use_module(library(dcg/basics)).
 
@@ -12,6 +13,20 @@ remove_edge(V, W, [e(V, W)|Es], Es) :- !.
 remove_edge(V, W, [e(W, V)|Es], Es) :- !.
 remove_edge(V, W, [E|Es], [E|Fs]) :- remove_edge(V, W, Es, Fs).
 
+% Graph simplification
+
+small_node(V) :- atom_chars(V, [C|_]), char_type(C, lower).
+
+mark_visit(V, Visited, [V|Visited]) :- small_node(V), !.
+mark_visit(_, Visited, Visited).
+
+dfs_path(end, _, _, [end]).
+dfs_path(V, Es, Visited, [V|Path]) :-
+  edge(V, W, Es),
+  \+ member(W, Visited),
+  mark_visit(V, Visited, Visited2),
+  dfs_path(W, Es, Visited2, Path).
+
 % DCG for parsing the input
 
 dcg_edges([])     --> eos, !.
@@ -23,7 +38,9 @@ dcg_edge(e(V, W)) --> string(VC), "-", string(WC), eol, !,
 % Main program
 
 parse_input(Es) :-
-  phrase_from_file(dcg_edges(Es), 'resources/demo.txt').
+  phrase_from_file(dcg_edges(Es), 'resources/demo1.txt').
 
 main :-
-  parse_input(_).
+  parse_input(Es),
+  dfs_path(start, Es, [], Path),
+  print(Path), nl.
