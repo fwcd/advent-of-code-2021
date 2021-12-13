@@ -12,6 +12,11 @@ namespace day13
       X = x;
       Y = y;
     }
+
+    public Point Max(Point rhs)
+    {
+      return new Point(Math.Max(X, rhs.X), Math.Max(Y, rhs.Y));
+    }
   }
 
   public struct Fold
@@ -66,8 +71,13 @@ namespace day13
 
     private static bool[,] PlacePoints(List<Point> points)
     {
-      // TODO
-      return new bool[,] {};
+      Point max = points.Aggregate(new Point(0, 0), (m, p) => m.Max(p));
+      bool[,] grid = new bool[max.Y + 1, max.X + 1];
+      foreach (var point in points)
+      {
+        grid[point.Y, point.X] = true;
+      }
+      return grid;
     }
 
     private static bool[,] ApplyFold(this bool[,] grid, Fold fold)
