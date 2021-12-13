@@ -126,13 +126,19 @@ namespace day13
 
     static void Main(string[] args)
     {
-      IEnumerator<string> input = File.ReadAllLines("resources/demo.txt").ToList().GetEnumerator();
+      IEnumerator<string> input = File.ReadAllLines("resources/input.txt").ToList().GetEnumerator();
       var points = ParsePoints(ref input);
       var folds = ParseFolds(ref input);
       var grid = PlacePoints(points);
+
+      var foldedOnce = grid.ApplyFold(folds[0]);
       var folded = folds.Aggregate(grid, ApplyFold);
 
-      Console.WriteLine(folded.ToGridString());
+      var part1 = foldedOnce.OfType<bool>().Count(x => x);
+      Console.WriteLine($"Part 1: {part1}");
+
+      var part2 = folded.OfType<bool>().Count(x => x);
+      Console.WriteLine($"Part 2: {part2}");
     }
   }
 }
