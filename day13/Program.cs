@@ -44,14 +44,6 @@ namespace day13
         return elems;
     }
 
-    private static void Skip<T>(this IEnumerator<T> enumerator, int n)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            enumerator.MoveNext();
-        }
-    }
-
     private static List<Point> ParsePoints(ref IEnumerator<string> lines)
     {
       return lines
