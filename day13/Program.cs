@@ -64,14 +64,34 @@ namespace day13
         .ToList();
     }
 
+    private static bool[,] PlacePoints(List<Point> points)
+    {
+      // TODO
+      return new bool[,] {};
+    }
+
+    private static bool[,] ApplyFold(this bool[,] grid, Fold fold)
+    {
+      // TODO
+      return new bool[,] {};
+    }
+
+    private static string ToGridString(this bool[,] grid)
+    {
+      return string.Join("\n", Enumerable.Range(0, grid.GetLength(0))
+        .Select(y => string.Join("", Enumerable.Range(0, grid.GetLength(1))
+          .Select(x => grid[y, x] ? "#" : "."))));
+    }
+
     static void Main(string[] args)
     {
       IEnumerator<string> input = File.ReadAllLines("resources/demo.txt").ToList().GetEnumerator();
       var points = ParsePoints(ref input);
       var folds = ParseFolds(ref input);
+      var grid = PlacePoints(points);
+      var folded = folds.Aggregate(grid, ApplyFold);
 
-      Console.WriteLine(string.Join(", ", points.Select(p => $"({p.X}, {p.Y})")));
-      Console.WriteLine(string.Join(", ", folds.Select(f => $"(fold along {(f.AlongX ? 'x' : 'y')}={f.Value})")));
+      Console.WriteLine(grid.ToGridString());
     }
   }
 }
