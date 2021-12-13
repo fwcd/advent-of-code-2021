@@ -4,30 +4,31 @@ namespace day13
 {
   public struct Point
   {
-    public readonly int X;
     public readonly int Y;
+    public readonly int X;
 
-    public Point(int x, int y)
+    public Point(int y, int x)
     {
-      X = x;
       Y = y;
+      X = x;
     }
 
-    public Point Max(Point rhs)
-    {
-      return new Point(Math.Max(X, rhs.X), Math.Max(Y, rhs.Y));
-    }
+    public Point Max(Point rhs) => new Point(Math.Max(Y, rhs.Y), Math.Max(X, rhs.X));
+
+    public int Get(int dimension) => dimension == 0 ? Y : X;
+
+    public Point With(int value, int dimension) => dimension == 0 ? new Point(value, X) : new Point(Y, value);
   }
 
   public struct Fold
   {
     public readonly int Value;
-    public readonly bool AlongX;
+    public readonly int Dimension;
 
-    public Fold(int value, bool alongX)
+    public Fold(int value, int dimension)
     {
       Value = value;
-      AlongX = alongX;
+      Dimension = dimension;
     }
   }
 
@@ -56,7 +57,7 @@ namespace day13
       return lines
         .TakeWhile(l => !string.IsNullOrWhiteSpace(l))
         .Select(l => l.Split(",").Select(int.Parse).ToList())
-        .Select(s => new Point(s[0], s[1]))
+        .Select(s => new Point(s[1], s[0]))
         .ToList();
     }
 
@@ -65,7 +66,7 @@ namespace day13
       return lines
         .TakeWhile(l => !string.IsNullOrWhiteSpace(l))
         .Select(l => Regex.Match(l, @"fold along\s+(\w)\s*=\s*(\d+)").Groups)
-        .Select(gs => new Fold(int.Parse(gs[2].Value), gs[1].Value == "x"))
+        .Select(gs => new Fold(int.Parse(gs[2].Value), gs[1].Value == "y" ? 0 : 1))
         .ToList();
     }
 
@@ -80,10 +81,40 @@ namespace day13
       return grid;
     }
 
+    private static IEnumerable<Point> Points(this bool[,] grid)
+    {
+      for (int y = 0; y < grid.GetLength(0); y++)
+      {
+        for (int x = 0; x < grid.GetLength(1); x++)
+        {
+          yield return new Point(y, x);
+        }
+      }
+    }
+
+    private static bool IsInBounds(this bool[,] grid, Point point) =>
+      point.Y >= 0 && point.Y < grid.GetLength(0) && point.X >= 0 && point.X < grid.GetLength(1);
+
+    private static bool Get(this bool[,] grid, Point point) => grid[point.Y, point.X];
+
+    private static void Combine(this bool[,] grid, Point point, bool value) => grid[point.Y, point.X] |= value;
+
     private static bool[,] ApplyFold(this bool[,] grid, Fold fold)
     {
-      // TODO
-      return new bool[,] {};
+      int[] newDimensions = Enumerable.Range(0, grid.Rank).Select(grid.GetLength).ToArray();
+      newDimensions[fold.Dimension] = fold.Value;
+
+      bool[,] newGrid = new bool[newDimensions[0], newDimensions[1]];
+      foreach (var point in newGrid.Points())
+      {
+        newGrid.Combine(point, grid.Get(point));
+
+        var foldPoint = point.With(2 * fold.Value - point.Get(fold.Dimension), fold.Dimension);
+        if (grid.IsInBounds(foldPoint)) {
+          newGrid.Combine(point, grid.Get(foldPoint));
+        }
+      }
+      return newGrid;
     }
 
     private static string ToGridString(this bool[,] grid)
@@ -101,7 +132,7 @@ namespace day13
       var grid = PlacePoints(points);
       var folded = folds.Aggregate(grid, ApplyFold);
 
-      Console.WriteLine(grid.ToGridString());
+      Console.WriteLine(folded.ToGridString());
     }
   }
 }
