@@ -36,12 +36,12 @@ namespace day13
   {
     private static List<T> TakeWhile<T>(this IEnumerator<T> enumerator, Predicate<T> p)
     {
-        var elems = new List<T>();
-        while (enumerator.MoveNext() && p(enumerator.Current))
-        {
-            elems.Add(enumerator.Current);
-        }
-        return elems;
+      var elems = new List<T>();
+      while (enumerator.MoveNext() && p(enumerator.Current))
+      {
+        elems.Add(enumerator.Current);
+      }
+      return elems;
     }
 
     private static List<Point> ParsePoints(ref IEnumerator<string> lines)
@@ -102,7 +102,8 @@ namespace day13
         newGrid.Combine(point, grid.Get(point));
 
         var foldPoint = point.With(2 * fold.Value - point.Get(fold.Dimension), fold.Dimension);
-        if (grid.IsInBounds(foldPoint)) {
+        if (grid.IsInBounds(foldPoint))
+        {
           newGrid.Combine(point, grid.Get(foldPoint));
         }
       }
