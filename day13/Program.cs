@@ -121,7 +121,7 @@ namespace day13
     {
       return string.Join("\n", Enumerable.Range(0, grid.GetLength(0))
         .Select(y => string.Join("", Enumerable.Range(0, grid.GetLength(1))
-          .Select(x => grid[y, x] ? "#" : "."))));
+          .Select(x => grid[y, x] ? "#" : " "))));
     }
 
     static void Main(string[] args)
@@ -137,8 +137,8 @@ namespace day13
       var part1 = foldedOnce.OfType<bool>().Count(x => x);
       Console.WriteLine($"Part 1: {part1}");
 
-      var part2 = folded.OfType<bool>().Count(x => x);
-      Console.WriteLine($"Part 2: {part2}");
+      var part2 = folded;
+      Console.WriteLine(folded.ToGridString());
     }
   }
 }
