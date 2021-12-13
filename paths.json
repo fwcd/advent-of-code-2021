@@ -46,5 +46,9 @@
   {
     "lang": "prolog",
     "path": "day12/day12.pl"
+  },
+  {
+    "lang": "csharp",
+    "path": "day13/Program.cs"
   }
 ]
