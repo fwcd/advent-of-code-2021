@@ -64,7 +64,7 @@ namespace day13
         .ToList();
     }
 
-    private static bool[,] PlacePoints(List<Point> points)
+    private static bool[,] PlacePoints(IEnumerable<Point> points)
     {
       Point max = points.Aggregate(new Point(0, 0), (m, p) => m.Max(p));
       bool[,] grid = new bool[max.Y + 1, max.X + 1];
@@ -86,32 +86,6 @@ namespace day13
       }
     }
 
-    private static bool IsInBounds(this bool[,] grid, Point point) =>
-      point.Y >= 0 && point.Y < grid.GetLength(0) && point.X >= 0 && point.X < grid.GetLength(1);
-
-    private static bool Get(this bool[,] grid, Point point) => grid[point.Y, point.X];
-
-    private static void Combine(this bool[,] grid, Point point, bool value) => grid[point.Y, point.X] |= value;
-
-    private static bool[,] ApplyFold(this bool[,] grid, Fold fold)
-    {
-      int[] newDimensions = Enumerable.Range(0, grid.Rank).Select(grid.GetLength).ToArray();
-      newDimensions[fold.Dimension] = fold.Value;
-
-      bool[,] newGrid = new bool[newDimensions[0], newDimensions[1]];
-      foreach (var point in newGrid.Points())
-      {
-        newGrid.Combine(point, grid.Get(point));
-
-        var foldPoint = point.With(2 * fold.Value - point.Get(fold.Dimension), fold.Dimension);
-        if (grid.IsInBounds(foldPoint))
-        {
-          newGrid.Combine(point, grid.Get(foldPoint));
-        }
-      }
-      return newGrid;
-    }
-
     private static string ToGridString(this bool[,] grid)
     {
       return string.Join("\n", Enumerable.Range(0, grid.GetLength(0))
@@ -124,16 +98,14 @@ namespace day13
       IEnumerator<string> input = File.ReadAllLines("resources/input.txt").ToList().GetEnumerator();
       var points = ParsePoints(ref input);
       var folds = ParseFolds(ref input);
-      var grid = PlacePoints(points);
-
-      var foldedOnce = grid.ApplyFold(folds[0]);
-      var folded = folds.Aggregate(grid, ApplyFold);
+      var foldedOnce = PlacePoints(points.Select(p0 => p0.After(folds[0])));
+      var foldedFully = PlacePoints(points.Select(p0 => folds.Aggregate(p0, (p, f) => p.After(f))));
 
       var part1 = foldedOnce.OfType<bool>().Count(x => x);
       Console.WriteLine($"Part 1: {part1}");
 
-      var part2 = folded;
-      Console.WriteLine(folded.ToGridString());
+      var part2 = foldedFully;
+      Console.WriteLine(foldedFully.ToGridString());
     }
   }
 }
