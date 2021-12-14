@@ -87,12 +87,11 @@ namespace day13
       IEnumerator<string> input = File.ReadAllLines("resources/input.txt").ToList().GetEnumerator();
       var points = ParsePoints(ref input);
       var folds = ParseFolds(ref input);
-      var foldedOnce = PlacePoints(points.Select(p0 => p0.After(folds[0])));
-      var foldedFully = PlacePoints(points.Select(p0 => folds.Aggregate(p0, (p, f) => p.After(f))));
 
-      var part1 = foldedOnce.OfType<bool>().Count(x => x);
+      var part1 = points.Select(p0 => p0.After(folds[0])).Distinct().Count();
       Console.WriteLine($"Part 1: {part1}");
 
+      var foldedFully = PlacePoints(points.Select(p0 => folds.Aggregate(p0, (p, f) => p.After(f))));
       Console.WriteLine(foldedFully.ToGridString());
     }
   }
