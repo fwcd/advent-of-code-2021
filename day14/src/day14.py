@@ -4,7 +4,7 @@ def apply(s: str, rules: list) -> str:
     for i in reversed(range(len(s) - 1)):
         for [lhs, rhs] in rules:
             if s[i:(i + 2)] == lhs:
-                s = s[:i] + s[i] + rhs + s[(i + 1):]
+                s = s[:(i + 1)] + rhs + s[(i + 1):]
                 break
     return s
 
