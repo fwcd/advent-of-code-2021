@@ -18,6 +18,8 @@ namespace day13
     public int Get(int dimension) => dimension == 0 ? Y : X;
 
     public Point With(int value, int dimension) => dimension == 0 ? new Point(value, X) : new Point(Y, value);
+
+    public Point After(Fold fold) => With(fold.Value - Math.Abs(fold.Value - Get(fold.Dimension)), fold.Dimension);
   }
 
   public struct Fold
