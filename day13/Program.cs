@@ -75,17 +75,6 @@ namespace day13
       return grid;
     }
 
-    private static IEnumerable<Point> Points(this bool[,] grid)
-    {
-      for (int y = 0; y < grid.GetLength(0); y++)
-      {
-        for (int x = 0; x < grid.GetLength(1); x++)
-        {
-          yield return new Point(y, x);
-        }
-      }
-    }
-
     private static string ToGridString(this bool[,] grid)
     {
       return string.Join("\n", Enumerable.Range(0, grid.GetLength(0))
@@ -104,7 +93,6 @@ namespace day13
       var part1 = foldedOnce.OfType<bool>().Count(x => x);
       Console.WriteLine($"Part 1: {part1}");
 
-      var part2 = foldedFully;
       Console.WriteLine(foldedFully.ToGridString());
     }
   }
