@@ -15,7 +15,7 @@ My solutions to the [Advent of Code 2021](https://adventofcode.com/2021), writte
 - [x] Day 11: Java
 - [x] Day 12: Prolog
 - [x] Day 13: C#
-- [ ] Day 14
+- [x] Day 14: Python
 - [ ] Day 15
 - [ ] Day 16
 - [ ] Day 17

@@ -50,5 +50,9 @@
   {
     "lang": "csharp",
     "path": "day13/Program.cs"
+  },
+  {
+    "lang": "python",
+    "path": "day14/src/day14.py"
   }
 ]
