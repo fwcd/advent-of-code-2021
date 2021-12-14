@@ -1,21 +1,32 @@
-from collections import Counter
-
-def apply(s: str, rules: list) -> str:
-    for i in reversed(range(len(s) - 1)):
-        for [lhs, rhs] in rules:
-            if s[i:(i + 2)] == lhs:
-                s = s[:(i + 1)] + rhs + s[(i + 1):]
-                break
-    return s
-
-with open('resources/input.txt', 'r') as f:
+with open('resources/demo.txt', 'r') as f:
     lines = [l.strip() for l in f.readlines()]
     polymer = lines[0]
-    rules = [l.split(' -> ') for l in lines[2:]]
+    rules = {lhs: rhs for [lhs, rhs] in (l.split(' -> ') for l in lines[2:])}
 
-    for i in range(10):
-        polymer = apply(polymer, rules)
-    
-    counts = Counter(polymer).most_common()
-    part1 = counts[0][1] - counts[-1][1]
-    print(f'Part 1: {part1}')
+    def score(counts: dict) -> int:
+        element_counts = {}
+        for pair, count in counts.items():
+            for element in pair:
+                element_counts[element] = element_counts.get(element, 0) + count
+        print(element_counts)
+        values = sorted(element_counts.values())
+        return values[-1] - values[0]
+
+    def compute(rounds: int) -> int:
+        counts = {polymer[i:(i + 2)]: 1 for i in range(len(polymer) - 1)}
+        for i in range(rounds):
+            for pair in list(counts.keys()):
+                new = rules.get(pair, None)
+                if new:
+                    l = pair[0] + new
+                    r = new + pair[1]
+                    counts[pair] -= 1
+                    if counts[pair] == 0:
+                        del counts[pair]
+                    counts[l] = counts.get(l, 0) + 1
+                    counts[r] = counts.get(r, 0) + 1
+        return score(counts)
+
+    print(f'Test: {compute(0)}')
+    print(f'Part 1: {compute(10)}')
+    print(f'Part 2: {compute(40)}')
