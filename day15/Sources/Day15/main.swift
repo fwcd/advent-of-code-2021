@@ -55,7 +55,7 @@ func dijkstra(
     fatalError("No path found!")
 }
 
-let input = try! String(contentsOfFile: "Resources/demo.txt")
+let input = try! String(contentsOfFile: "Resources/input.txt")
 let grid: [[Int]] = input.split(separator: "\n")
     .map { $0.compactMap { Int(String($0)) } }
 
