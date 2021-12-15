@@ -54,5 +54,9 @@
   {
     "lang": "python",
     "path": "day14/src/day14.py"
+  },
+  {
+    "lang": "swift",
+    "path": "day15/Sources/Day15/main.swift"
   }
 ]
