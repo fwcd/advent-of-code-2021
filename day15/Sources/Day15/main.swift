@@ -35,11 +35,19 @@ extension Array: Grid where Element == [Int] {
     subscript(point: Point) -> Int { self[point.y][point.x] }
 }
 
-/*
 struct TiledGrid<Inner>: Grid where Inner: Grid {
+    let inner: Inner
+    let times: Int
 
+    var height: Int { inner.height * times }
+    var width: Int { inner.width * times }
+
+    subscript(point: Point) -> Int {
+        let offset = point.y / inner.height + point.x / inner.width
+        let rawValue = inner[Point(y: point.y % inner.height, x: point.x % inner.width)] + offset
+        return ((rawValue - 1) % 9) + 1
+    }
 }
-*/
 
 struct WeightedPoint: Comparable {
     let point: Point
@@ -57,7 +65,7 @@ struct WeightedPoint: Comparable {
 func dijkstra<G>(
     on grid: G,
     from start: Point = Point(y: 0, x: 0),
-    to dest: Point = Point(y: grid.height - 1, x: grid.width - 1)
+    to dest: Point
 ) -> Int where G: Grid {
     var heap = Heap<WeightedPoint>()
     var visited = Set<Point>()
@@ -80,5 +88,7 @@ func dijkstra<G>(
 let input = try! String(contentsOfFile: "Resources/input.txt")
 let grid: [[Int]] = input.split(separator: "\n")
     .map { $0.compactMap { Int(String($0)) } }
+let tiled = TiledGrid(inner: grid, times: 5)
 
-print("Part 1: \(dijkstra(on: grid))")
+print("Part 1: \(dijkstra(on: grid, to: Point(y: grid.height - 1, x: grid.width - 1)))")
+print("Part 2: \(dijkstra(on: tiled, to: Point(y: tiled.height - 1, x: tiled.width - 1)))")
