@@ -4,20 +4,42 @@ import Foundation
 struct Point: Hashable {
     let y: Int
     let x: Int
+}
 
-    func isInBounds(of grid: [[Int]]) -> Bool {
-        y >= 0 && y < grid.count && x >= 0 && x < grid[y].count
+protocol Grid {
+    var height: Int { get }
+    var width: Int { get }
+
+    subscript(point: Point) -> Int { get }
+}
+
+extension Grid {
+    func isInBounds(point: Point) -> Bool {
+        point.y >= 0 && point.y < height && point.x >= 0 && point.x < width
     }
 
-    func neighbors(on grid: [[Int]]) -> [Point] {
+    func neighbors(of point: Point) -> [Point] {
         [
-            Point(y: y - 1, x: x),
-            Point(y: y + 1, x: x),
-            Point(y: y, x: x - 1),
-            Point(y: y, x: x + 1),
-        ].filter { $0.isInBounds(of: grid) }
+            Point(y: point.y - 1, x: point.x),
+            Point(y: point.y + 1, x: point.x),
+            Point(y: point.y, x: point.x - 1),
+            Point(y: point.y, x: point.x + 1),
+        ].filter(isInBounds(point:))
     }
 }
+
+extension Array: Grid where Element == [Int] {
+    var height: Int { count }
+    var width: Int { self[0].count }
+
+    subscript(point: Point) -> Int { self[point.y][point.x] }
+}
+
+/*
+struct TiledGrid<Inner>: Grid where Inner: Grid {
+
+}
+*/
 
 struct WeightedPoint: Comparable {
     let point: Point
@@ -32,11 +54,11 @@ struct WeightedPoint: Comparable {
     }
 }
 
-func dijkstra(
-    on grid: [[Int]],
+func dijkstra<G>(
+    on grid: G,
     from start: Point = Point(y: 0, x: 0),
-    to dest: Point = Point(y: grid.count - 1, x: grid[0].count - 1)
-) -> Int {
+    to dest: Point = Point(y: grid.height - 1, x: grid.width - 1)
+) -> Int where G: Grid {
     var heap = Heap<WeightedPoint>()
     var visited = Set<Point>()
 
@@ -47,8 +69,8 @@ func dijkstra(
             return next.weight
         }
         visited.insert(next.point)
-        for neighbor in next.point.neighbors(on: grid) where !visited.contains(neighbor) {
-            heap.insert(WeightedPoint(point: neighbor, weight: next.weight + grid[neighbor.y][neighbor.x]))
+        for neighbor in grid.neighbors(of: next.point) where !visited.contains(neighbor) {
+            heap.insert(WeightedPoint(point: neighbor, weight: next.weight + grid[neighbor]))
         }
     }
 
