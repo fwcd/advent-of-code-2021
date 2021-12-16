@@ -40,6 +40,7 @@ interface LiteralPacket extends BasePacket {
 interface OperatorPacket extends BasePacket {
   type: "operator";
   subPackets: Packet[];
+  operator: (xs: number[]) => number;
 }
 
 type Packet = LiteralPacket | OperatorPacket;
@@ -62,6 +63,7 @@ function parsePacket(state: ParseState): Packet {
   default: // Operator
     const lengthTypeId = readBits(1, state);
     const subPackets: Packet[] = [];
+
     if (lengthTypeId === 0) {
       const totalLength = readBits(15, state);
       const startBitIndex = state.bitIndex;
@@ -74,16 +76,38 @@ function parsePacket(state: ParseState): Packet {
         subPackets.push(parsePacket(state));
       }
     }
-    return { type: "operator", subPackets, ...base }
+
+    let operator: (xs: number[]) => number;
+    switch (type) {
+    case 0: operator = xs => xs.reduce((a, b) => a + b); break;
+    case 1: operator = xs => xs.reduce((a, b) => a * b); break;
+    case 2: operator = xs => Math.min(...xs); break;
+    case 3: operator = xs => Math.max(...xs); break;
+    case 5: operator = xs => xs[0] > xs[1] ? 1 : 0; break;
+    case 6: operator = xs => xs[0] < xs[1] ? 1 : 0; break;
+    case 7: operator = xs => xs[0] === xs[1] ? 1 : 0; break;
+    default: break;
+    }
+
+    return { type: "operator", operator, subPackets, ...base }
   }
 }
 
-function sumVersions(packet: Packet) {
+function sumVersions(packet: Packet): number {
   let sum = packet.version;
   if (packet.type === "operator") {
     sum += packet.subPackets.map(p => sumVersions(p)).reduce((a, b) => a + b);
   }
   return sum;
+}
+
+function evaluate(packet: Packet): number {
+  switch (packet.type) {
+  case "literal":
+    return packet.value;
+  case "operator":
+    return packet.operator(packet.subPackets.map(p => evaluate(p)));
+  }
 }
 
 async function main() {
@@ -93,6 +117,7 @@ async function main() {
 
   console.log(JSON.stringify(packet, null, 2));
   console.log(`Part 1: ${sumVersions(packet)}`);
+  console.log(`Part 2: ${evaluate(packet)}`);
 }
 
 main();
