@@ -49,36 +49,41 @@ struct TiledGrid<Inner>: Grid where Inner: Grid {
     }
 }
 
-struct WeightedPoint: Comparable {
+struct Path: Comparable {
     let point: Point
-    let weight: Int
+    let length: Int
+    let cost: Int
 
-    static func <(lhs: WeightedPoint, rhs: WeightedPoint) -> Bool {
-        lhs.weight < rhs.weight
+    static func <(lhs: Path, rhs: Path) -> Bool {
+        lhs.cost < rhs.cost
     }
 
-    static func ==(lhs: WeightedPoint, rhs: WeightedPoint) -> Bool {
-        lhs.weight == rhs.weight
+    static func ==(lhs: Path, rhs: Path) -> Bool {
+        lhs.cost == rhs.cost
     }
 }
 
-func dijkstra<G>(
+func shortestPath<G>(
     on grid: G,
     from start: Point = Point(y: 0, x: 0),
     to dest: Point
 ) -> Int where G: Grid {
-    var heap = Heap<WeightedPoint>()
+    // Perform A* search (essentially Dijkstra + heuristic)
+
+    var heap = Heap<Path>()
     var visited = Set<Point>()
 
-    heap.insert(WeightedPoint(point: start, weight: 0))
+    heap.insert(Path(point: start, length: 0, cost: 0)) // cost is irrelevant here
 
     while let next = heap.popMin() {
         if next.point == dest {
-            return next.weight
+            return next.length
         }
         visited.insert(next.point)
         for neighbor in grid.neighbors(of: next.point) where !visited.contains(neighbor) {
-            heap.insert(WeightedPoint(point: neighbor, weight: next.weight + grid[neighbor]))
+            let length = next.length + grid[neighbor]
+            let distToDest = abs(next.point.y - dest.y) + abs(next.point.x - dest.x) // Manhattan distance
+            heap.insert(Path(point: neighbor, length: length, cost: length + distToDest))
         }
     }
 
@@ -90,5 +95,5 @@ let grid: [[Int]] = input.split(separator: "\n")
     .map { $0.compactMap { Int(String($0)) } }
 let tiled = TiledGrid(inner: grid, times: 5)
 
-print("Part 1: \(dijkstra(on: grid, to: Point(y: grid.height - 1, x: grid.width - 1)))")
-print("Part 2: \(dijkstra(on: tiled, to: Point(y: tiled.height - 1, x: tiled.width - 1)))")
+print("Part 1: \(shortestPath(on: grid, to: Point(y: grid.height - 1, x: grid.width - 1)))")
+print("Part 2: \(shortestPath(on: tiled, to: Point(y: tiled.height - 1, x: tiled.width - 1)))")
