@@ -29,7 +29,6 @@ function readBits(count: number, state: ParseState): number {
 }
 
 interface BasePacket {
-  type: string;
   version: number;
 }
 
@@ -38,12 +37,18 @@ interface LiteralPacket extends BasePacket {
   value: number;
 }
 
-type Packet = LiteralPacket;
+interface OperatorPacket extends BasePacket {
+  type: "operator";
+  subPackets: Packet[];
+}
 
-function parsePacket(buffer: Uint8Array): Packet {
-  const state: ParseState = { buffer, bitIndex: 0 };
+type Packet = LiteralPacket | OperatorPacket;
+
+function parsePacket(state: ParseState): Packet {
   const version = readBits(3, state);
   const type = readBits(3, state);
+  const base: BasePacket = { version };
+
   switch (type) {
   case 4: // Literal
     let value = 0;
@@ -53,17 +58,31 @@ function parsePacket(buffer: Uint8Array): Packet {
       const group = readBits(5, state);
       value = (value << 4) | (group & 0b1111);
     }
-    return { type: "literal", version, value };
-  default:
-    break;
+    return { type: "literal", value, ...base };
+  default: // Operator
+    const lengthTypeId = readBits(1, state);
+    const subPackets: Packet[] = [];
+    if (lengthTypeId === 0) {
+      const totalLength = readBits(15, state);
+      const startBitIndex = state.bitIndex;
+      while (state.bitIndex < startBitIndex + totalLength) {
+        subPackets.push(parsePacket(state));
+      }
+    } else {
+      const subPacketCount = readBits(11, state);
+      for (let i = 0; i < subPacketCount; i++) {
+        subPackets.push(parsePacket(state));
+      }
+    }
+    return { type: "operator", subPackets, ...base }
   }
 }
 
 async function main() {
-  const input = await fs.promises.readFile("resources/literal-demo.txt", { encoding: "utf-8" });
+  const input = await fs.promises.readFile("resources/operator-demo-2.txt", { encoding: "utf-8" });
   const rawPacket = decodePacket(input);
-  const packet = parsePacket(rawPacket);
-  console.log(JSON.stringify(packet));
+  const packet = parsePacket({ buffer: rawPacket, bitIndex: 0 });
+  console.log(JSON.stringify(packet, null, 2));
 }
 
 main();
