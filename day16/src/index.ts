@@ -52,14 +52,14 @@ function parsePacket(state: ParseState): Packet {
 
   switch (type) {
   case 4: // Literal
-    let value = 0;
+    let value = 0n;
     let lastBit = 1;
     while (lastBit === 1) {
       lastBit = nextBit(state);
       const group = readBits(5, state);
-      value = (value << 4) | (group & 0b1111);
+      value = (value << 4n) | BigInt(group & 0b1111);
     }
-    return { type: "literal", value, ...base };
+    return { type: "literal", value: Number(value), ...base };
   default: // Operator
     const lengthTypeId = readBits(1, state);
     const subPackets: Packet[] = [];
