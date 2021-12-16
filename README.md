@@ -17,7 +17,7 @@ My solutions to the [Advent of Code 2021](https://adventofcode.com/2021), writte
 - [x] Day 13: C#
 - [x] Day 14: Python
 - [x] Day 15: Swift
-- [ ] Day 16: TypeScript
+- [x] Day 16: TypeScript
 - [ ] Day 17
 - [ ] Day 18
 - [ ] Day 19
