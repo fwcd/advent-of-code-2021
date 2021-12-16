@@ -78,11 +78,21 @@ function parsePacket(state: ParseState): Packet {
   }
 }
 
+function sumVersions(packet: Packet) {
+  let sum = packet.version;
+  if (packet.type === "operator") {
+    sum += packet.subPackets.map(p => sumVersions(p)).reduce((a, b) => a + b);
+  }
+  return sum;
+}
+
 async function main() {
-  const input = await fs.promises.readFile("resources/operator-demo-2.txt", { encoding: "utf-8" });
+  const input = await fs.promises.readFile("resources/input.txt", { encoding: "utf-8" });
   const rawPacket = decodePacket(input);
   const packet = parsePacket({ buffer: rawPacket, bitIndex: 0 });
+
   console.log(JSON.stringify(packet, null, 2));
+  console.log(`Part 1: ${sumVersions(packet)}`);
 }
 
 main();
