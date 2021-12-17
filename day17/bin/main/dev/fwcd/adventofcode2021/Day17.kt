@@ -32,10 +32,24 @@ fun simulate(startVelocity: Vec, target: Rect): SimulationResults {
 }
 
 fun main() {
-    val input = object {}.javaClass.getResource("/demo.txt").readText()
+    val input = object {}.javaClass.getResource("/input.txt").readText()
     val pattern = """target area: x=(-?\d+)..(-?\d+), y=(-?\d+)..(-?\d+)""".toRegex()
     val (x1, x2, y1, y2) = pattern.find(input)!!.groupValues.drop(1).map { it.toInt() }
     val target = Rect(Vec(x1, y1), Vec(x2, y2))
-    
-    println("In: ${simulate(Vec(6, 9), target)}")
+    val radius = Math.max(
+        Math.max(Math.abs(x1), Math.abs(x2)),
+        Math.max(Math.abs(y1), Math.abs(y2))
+    )
+    var maxY = 0
+
+    for (dy in -radius..radius) {
+        for (dx in -radius..radius) {
+            val results = simulate(Vec(dx, dy), target)
+            if (results.hitTarget) {
+                maxY = Math.max(maxY, results.maxY)
+            }
+        }
+    }
+
+    println("Part 1: $maxY")
 }
