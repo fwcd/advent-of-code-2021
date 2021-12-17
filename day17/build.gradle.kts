@@ -29,5 +29,5 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass.set("dev.fwcd.adventofcode2021.AppKt")
+    mainClass.set("dev.fwcd.adventofcode2021.Day17Kt")
 }
