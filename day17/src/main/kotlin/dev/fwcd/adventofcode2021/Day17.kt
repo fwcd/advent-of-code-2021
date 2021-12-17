@@ -25,7 +25,7 @@ fun simulate(startVelocity: Vec, target: Rect): SimulationResults {
         }
         pos += velocity
         maxY = Math.max(pos.y, maxY)
-        velocity = velocity.copy(x = velocity.x - velocity.x.sign, y = velocity.y - 1)
+        velocity = Vec(velocity.x - velocity.x.sign, velocity.y - 1)
     }
 
     return SimulationResults(hitTarget = false, maxY)
