@@ -41,15 +41,18 @@ fun main() {
         Math.max(Math.abs(y1), Math.abs(y2))
     )
     var maxY = 0
+    var hitCount = 0
 
     for (dy in -radius..radius) {
         for (dx in -radius..radius) {
             val results = simulate(Vec(dx, dy), target)
             if (results.hitTarget) {
                 maxY = Math.max(maxY, results.maxY)
+                hitCount++
             }
         }
     }
 
     println("Part 1: $maxY")
+    println("Part 2: $hitCount")
 }
