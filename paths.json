@@ -58,5 +58,13 @@
   {
     "lang": "swift",
     "path": "day15/Sources/Day15/main.swift"
+  },
+  {
+    "lang": "typescript",
+    "path": "day16/src/index.ts"
+  },
+  {
+    "lang": "kotlin",
+    "path": "day17/src/main/kotlin/dev/fwcd/adventofcode2021/Day17.kt"
   }
 ]
