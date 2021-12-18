@@ -19,4 +19,6 @@ snail = pair <|> regular
         regular = Regular <$> nat
 
 main :: IO ()
-main = putStrLn "This is my project!"
+main = do
+  input <- parse snail <$> readFile "resources/simple-demo.txt"
+  putStrLn $ show input
