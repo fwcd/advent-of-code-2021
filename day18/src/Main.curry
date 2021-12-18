@@ -1,5 +1,7 @@
 module Main where
 
+import Debug.Trace
+import Data.Maybe (fromMaybe)
 import Parsing
 
 data Snail = Pair Snail Snail | Regular Int deriving (Eq, Show)
@@ -34,8 +36,8 @@ modifyRightmost f (Pair x y) = Pair x (modifyRightmost f y)
 -- Reductions
 
 explode :: Snail -> Maybe Snail
-explode s = let (_, s', _, exploded) = explode' 0 s
-            in if exploded then Just s' else Nothing
+explode s = let (_, s', _, didExplode) = explode' 0 s
+            in if didExplode then Just s' else Nothing
   where
     explode' :: Int -> Snail -> (Maybe Int, Snail, Maybe Int, Bool)
     explode' d (Pair x y) | d >= 4    = case (x, y) of
@@ -54,6 +56,22 @@ explode s = let (_, s', _, exploded) = explode' 0 s
     explosion :: Maybe Int -> Int -> Int
     explosion (Just x) = (+x)
     explosion Nothing  = id
+
+split :: Snail -> Maybe Snail
+split s = let (s', didSplit) = split' s
+          in if didSplit then Just s' else Nothing
+  where
+    split' :: Snail -> (Snail, Bool)
+    split' (Regular x) | x >= 10   = let xh = x `div` 2
+                                         xm = x `mod` 2
+                                     in (Pair (Regular xh) (Regular $ xh + xm), True)
+                       | otherwise = (Regular x, False)
+    split' (Pair x y) = let (x', splitX) = split' x
+                            (y', splitY) = split' y
+                        in if splitX then (Pair x' y, True) else if splitY then (Pair x y', True) else (Pair x y, False)
+
+reduce :: Snail -> Snail
+reduce s = trace ("Reducing " ++ pretty s) $ fromMaybe s $ reduce <$> (explode s <|> split s)
 
 -- Main
 
