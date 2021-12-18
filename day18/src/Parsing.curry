@@ -17,6 +17,12 @@ instance Monad Parser where
     Just (x, is') -> let Parser p' = f x in p' is'
     Nothing       -> Nothing
 
+instance Alternative Parser where
+  empty = Parser $ \_ -> Nothing
+  Parser pl <|> Parser pr = Parser $ \is -> case pl is of
+    Just (x, is') -> Just (x, is')
+    Nothing       -> pr is
+
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy f = Parser $ \is -> case is of
   (i:is') | f i -> Just (i, is')
