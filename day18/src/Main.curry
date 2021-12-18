@@ -1,5 +1,6 @@
 module Main where
 
+import Control.AllValues (allValues)
 import Data.Maybe (fromMaybe)
 import Parsing
 
@@ -81,6 +82,14 @@ magnitude :: Snail -> Int
 magnitude (Pair x y) = 3 * magnitude x + 2 * magnitude y
 magnitude (Regular x) = x
 
+-- Utils
+
+choose :: Int -> [a] -> [a]
+choose n xs | n > 0     = case xs of
+                            x':xs' -> (x' : choose (n - 1) xs') ? choose n xs'
+                            []     -> failed
+            | otherwise = []
+
 -- Main
 
 main :: IO ()
@@ -88,4 +97,6 @@ main = do
   inputs <- ((parse snail <$>) . lines) <$> readFile "resources/input.txt"
   let sum = foldl1 add inputs
       part1 = magnitude sum
+      part2 = foldr1 max $ (magnitude <$>) $ allValues $ foldl1 add (choose 2 inputs)
   putStrLn $ "Part 1: " ++ show part1
+  putStrLn $ "Part 2: " ++ show part2

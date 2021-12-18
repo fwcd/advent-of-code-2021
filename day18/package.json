@@ -6,5 +6,6 @@
   "synopsis": "Day 18 solution",
   "licenseFile": "LICENSE",
   "dependencies": {
+    "allvalues": ">= 3.0.0, < 4.0.0"
   }
 }
