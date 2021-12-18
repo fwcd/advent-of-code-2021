@@ -2,16 +2,16 @@
 
 ## Running
 
-Make sure to have a recent Curry compiler installed, e.g. PAKCS 3 or KiCS2 3. Run
+Make sure to have a recent Curry compiler installed, e.g. KiCS2 3 or PAKCS 3. Run
 
 ```bash
 $CURRY cypm install
 ```
 
-then
+to install the dependencies then
 
 ```bash
 $CURRY :load Main :eval main :quit
 ```
 
-where `$CURRY` is your compiler of choice, e.g. `kics2` or `pakcs`.
+to run the program, where `$CURRY` is your compiler of choice, e.g. `kics2` or `pakcs`.
