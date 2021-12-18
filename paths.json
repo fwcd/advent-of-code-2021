@@ -66,5 +66,9 @@
   {
     "lang": "kotlin",
     "path": "day17/src/main/kotlin/dev/fwcd/adventofcode2021/Day17.kt"
+  },
+  {
+    "lang": "haskell",
+    "path": "day18/src/Main.curry"
   }
 ]
