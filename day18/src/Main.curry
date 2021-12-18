@@ -72,9 +72,20 @@ split s = let (s', didSplit) = split' s
 reduce :: Snail -> Snail
 reduce s = fromMaybe s $ reduce <$> (explode s <|> split s)
 
+-- Operations
+
+add :: Snail -> Snail -> Snail
+add x y = reduce $ Pair x y
+
+magnitude :: Snail -> Int
+magnitude (Pair x y) = 3 * magnitude x + 2 * magnitude y
+magnitude (Regular x) = x
+
 -- Main
 
 main :: IO ()
 main = do
-  input <- parse snail <$> readFile "resources/simple-demo.txt"
-  putStrLn $ show input
+  inputs <- ((parse snail <$>) . lines) <$> readFile "resources/input.txt"
+  let sum = foldl1 add inputs
+      part1 = magnitude sum
+  putStrLn $ "Part 1: " ++ show part1
