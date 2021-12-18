@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "author": "fwcd",
   "category": [ "Programming" ],
+  "synopsis": "Day 18 solution",
   "licenseFile": "LICENSE",
   "dependencies": {
   }
