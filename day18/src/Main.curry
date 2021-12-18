@@ -1,6 +1,5 @@
 module Main where
 
-import Debug.Trace
 import Data.Maybe (fromMaybe)
 import Parsing
 
@@ -71,7 +70,7 @@ split s = let (s', didSplit) = split' s
                         in if splitX then (Pair x' y, True) else if splitY then (Pair x y', True) else (Pair x y, False)
 
 reduce :: Snail -> Snail
-reduce s = trace ("Reducing " ++ pretty s) $ fromMaybe s $ reduce <$> (explode s <|> split s)
+reduce s = fromMaybe s $ reduce <$> (explode s <|> split s)
 
 -- Main
 
