@@ -93,6 +93,16 @@ struct Scanner {
     return *this + (-offset);
   }
 
+  Scanner intersect(const Scanner &other) const {
+    Scanner result;
+    for (Point p : points) {
+      if (other.points.find(p) != other.points.end()) {
+        result.points.insert(p);
+      }
+    }
+    return result;
+  }
+
   void merge(const Scanner &other, Point location) {
     for (Point p : other.points) {
       points.insert(p - location);
@@ -105,15 +115,9 @@ struct Scanner {
 
       for (Point bq : other.points) {
         Scanner rel_other = other - bq;
-        std::unordered_set<Point, Point::Hash> intersect;
+        Scanner intersection = rel.intersect(rel_other);
 
-        for (Point r : rel_other.points) {
-          if (rel.points.find(r) != rel.points.end()) {
-            intersect.insert(r);
-          }
-        }
-
-        if (intersect.size() >= 12) {
+        if (intersection.points.size() >= 12) {
           return bq - bp;
         }
       }
@@ -192,10 +196,6 @@ int main() {
       scanners.push_back(scanner);
       scanner = {};
     }
-  }
-
-  for (const Scanner &scanner : scanners[0].rotations()) {
-    std::cout << scanner.to_string() << std::endl;
   }
 
   std::vector<std::unordered_map<int, Point>> neighbor_locations;
