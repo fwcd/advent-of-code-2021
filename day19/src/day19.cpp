@@ -47,17 +47,17 @@ struct Point {
 };
 
 struct Scanner {
-  std::vector<Point> points;
+  std::unordered_set<Point, Point::Hash> points;
 
   // Algorithm for generating the 24 rotations inspired by https://stackoverflow.com/a/58471362
 
-  void for_each_rotation(std::function<void(const std::vector<Point> &)> action) const {
-    std::vector<Point> rotated{points};
+  bool for_each_rotation(std::function<bool(const std::vector<Point> &)> action) const {
+    std::vector<Point> rotated{points.begin(), points.end()};
     for (int r = 0; r < 6; r++) {
       for (Point &point : rotated) {
         point = point.roll();
       }
-      action(rotated);
+      if (action(rotated)) return true;
       for (int t = 0; t < 3; t++) {
         for (Point &point : rotated) {
           if (r % 2 == 0) {
@@ -66,9 +66,42 @@ struct Scanner {
             point = point.turn_inv();
           }
         }
-        action(rotated);
+        if (action(rotated)) return true;
       }
     }
+    return false;
+  }
+
+  bool try_merge(const Scanner &other) {
+    return other.for_each_rotation([this] (const std::vector<Point> &other_points) {
+      for (Point bp : points) {
+        for (Point bq : other_points) {
+          std::unordered_set<Point, Point::Hash> rel_base_points;
+          std::unordered_set<Point, Point::Hash> rel_other_points;
+          std::unordered_set<Point, Point::Hash> intersection;
+
+          for (Point p : points) {
+            rel_base_points.insert(p - bp);
+          }
+          for (Point q : other_points) {
+            rel_other_points.insert(q - bq);
+          }
+          for (Point r : rel_base_points) {
+            if (rel_other_points.find(r) != rel_other_points.end()) {
+              intersection.insert(r);
+            }
+          }
+
+          if (intersection.size() >= 12) {
+            for (Point r : rel_other_points) {
+              points.insert(r + bp);
+            }
+            return true;
+          }
+        }
+      }
+      return false;
+    });
   }
 };
 
@@ -95,7 +128,7 @@ bool parse_scanner(std::ifstream &file, Scanner &scanner) {
   while (true) {
     if (!std::getline(file, line)) return false;
     if (line.empty()) break;
-    scanner.points.push_back(parse_point(line));
+    scanner.points.insert(parse_point(line));
   }
   return true;
 }
@@ -110,39 +143,16 @@ int main() {
     scanner = Scanner();
   }
 
-  const Scanner &base_scanner{scanners[0]};
-  const std::unordered_set<Point, Point::Hash> base_points{base_scanner.points.begin(), base_scanner.points.end()};
+  Scanner combined{scanners[0]};
 
-  int i{1};
-  for (auto it = scanners.begin() + 1; it != scanners.end(); it++) {
-    const Scanner &scanner{*it};
-    scanner.for_each_rotation([i, &base_points] (const std::vector<Point> &points) {
-      for (Point bp : base_points) {
-        for (Point bq : points) {
-          std::unordered_set<Point, Point::Hash> rel_base_points;
-          std::unordered_set<Point, Point::Hash> rel_points;
-          std::unordered_set<Point, Point::Hash> intersection;
-
-          for (Point p : base_points) {
-            rel_base_points.insert(p - bp);
-          }
-          for (Point q : points) {
-            rel_points.insert(q - bq);
-          }
-          for (Point r : rel_base_points) {
-            if (rel_points.find(r) != rel_points.end()) {
-              intersection.insert(r);
-            }
-          }
-
-          if (intersection.size() >= 12) {
-            std::cout << "Found intersection size " << intersection.size() << " for scanner " << i << std::endl;
-          }
-        }
-      }
-    });
-    i++;
+  for (int i = 1; i < scanners.size(); i++) {
+    const Scanner &scanner{scanners[i]};
+    if (combined.try_merge(scanner)) {
+      std::cout << "Merged " << i << std::endl;
+    }
   }
+
+  std::cout << "Part 1: " << combined.points.size() << std::endl;
 
   return 0;
 }
