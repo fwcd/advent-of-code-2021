@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <functional>
+#include <unordered_set>
 #include <vector>
 
 struct Point {
@@ -20,6 +21,10 @@ struct Point {
     return Point(x - rhs.x, y - rhs.y, z - rhs.z);
   }
 
+  bool operator==(Point rhs) const {
+    return x == rhs.x && y == rhs.y && z == rhs.z;
+  }
+
   // Rotations as in https://stackoverflow.com/a/16467849
 
   Point roll() const { return Point(x, -z, y); }
@@ -33,6 +38,12 @@ struct Point {
     ss << "(" << x << ", " << y << ", " << z << ")";
     return ss.str();
   }
+
+  struct Hash {
+    size_t operator()(const Point &point) const {
+      return point.x ^ (point.y << 1) ^ (point.z << 2);
+    }
+  };
 };
 
 struct Scanner {
@@ -94,15 +105,43 @@ int main() {
   Scanner scanner;
   std::vector<Scanner> scanners;
 
-  // Only for testing
-  Scanner s{{Point(1, 2, 3)}};
-  s.for_each_rotation([] (const std::vector<Point> &points) {
-    std::cout << points[0].to_string() << std::endl;
-  });
-
   while (parse_scanner(file, scanner)) {
     scanners.push_back(scanner);
     scanner = Scanner();
+  }
+
+  const Scanner &base_scanner{scanners[0]};
+  const std::unordered_set<Point, Point::Hash> base_points{base_scanner.points.begin(), base_scanner.points.end()};
+
+  int i{1};
+  for (auto it = scanners.begin() + 1; it != scanners.end(); it++) {
+    const Scanner &scanner{*it};
+    scanner.for_each_rotation([i, &base_points] (const std::vector<Point> &points) {
+      for (Point bp : base_points) {
+        for (Point bq : points) {
+          std::unordered_set<Point, Point::Hash> rel_base_points;
+          std::unordered_set<Point, Point::Hash> rel_points;
+          std::unordered_set<Point, Point::Hash> intersection;
+
+          for (Point p : base_points) {
+            rel_base_points.insert(p - bp);
+          }
+          for (Point q : points) {
+            rel_points.insert(q - bq);
+          }
+          for (Point r : rel_base_points) {
+            if (rel_points.find(r) != rel_points.end()) {
+              intersection.insert(r);
+            }
+          }
+
+          if (intersection.size() >= 12) {
+            std::cout << "Found intersection size " << intersection.size() << " for scanner " << i << std::endl;
+          }
+        }
+      }
+    });
+    i++;
   }
 
   return 0;
