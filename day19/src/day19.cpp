@@ -215,6 +215,7 @@ int main() {
           neighbor_locations[i].insert({j, *location});
           neighbor_locations[j].insert({i, -*location});
           scanners[j] = rotated;
+          break;
         }
       }
     }
