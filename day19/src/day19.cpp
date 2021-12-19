@@ -121,6 +121,15 @@ struct Scanner {
 
     return std::nullopt;
   }
+
+  std::string to_string() const {
+    std::stringstream ss;
+    ss << "--- Scanner ---" << std::endl;
+    for (Point p : points) {
+      ss << p.to_string() << std::endl;
+    }
+    return ss.str();
+  }
 };
 
 int parse_component(std::string input, int &i) {
@@ -177,12 +186,16 @@ int main() {
   std::vector<Scanner> scanners;
 
   {
-    std::ifstream file{"resources/demo.txt"};
+    std::ifstream file{"resources/rotations.txt"};
     Scanner scanner;
     while (parse_scanner(file, scanner)) {
       scanners.push_back(scanner);
       scanner = {};
     }
+  }
+
+  for (const Scanner &scanner : scanners[0].rotations()) {
+    std::cout << scanner.to_string() << std::endl;
   }
 
   std::vector<std::unordered_map<int, Point>> neighbor_locations;
