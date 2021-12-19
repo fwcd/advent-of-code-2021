@@ -204,19 +204,21 @@ int main() {
   }
 
   for (int i = 0; i < scanners.size(); i++) {
-    for (int j = i + 1; j < scanners.size(); j++) {
-      Scanner lhs{scanners[i]};
-      Scanner rhs{scanners[j]};
-      auto rotations{frozen[j] ? std::vector<Scanner>{rhs} : rhs.rotations()};
-      for (const Scanner &rotated : rotations) {
-        std::optional<Point> location{lhs.locate(rotated)};
-        if (location) {
-          std::cout << "Scanner " << i << " located " << j << " at " << location->to_string() << std::endl;
-          neighbor_locations[i].insert({j, *location});
-          neighbor_locations[j].insert({i, -*location});
-          scanners[j] = rotated;
-          frozen[j] = true;
-          break;
+    for (int j = 0; j < scanners.size(); j++) {
+      if (i != j) {
+        Scanner lhs{scanners[i]};
+        Scanner rhs{scanners[j]};
+        auto rotations{frozen[j] ? std::vector<Scanner>{rhs} : rhs.rotations()};
+        for (const Scanner &rotated : rotations) {
+          std::optional<Point> location{lhs.locate(rotated)};
+          if (location) {
+            std::cout << "Scanner " << i << " located " << j << " at " << location->to_string() << std::endl;
+            neighbor_locations[i].insert({j, *location});
+            neighbor_locations[j].insert({i, -*location});
+            scanners[j] = rotated;
+            frozen[j] = true;
+            break;
+          }
         }
       }
     }
