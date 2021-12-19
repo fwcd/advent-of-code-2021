@@ -15,21 +15,13 @@ struct Point {
 
   Point(int x, int y, int z) : x(x), y(y), z(z) {}
 
-  Point operator+(Point rhs) const {
-    return Point(x + rhs.x, y + rhs.y, z + rhs.z);
-  }
+  Point operator+(Point rhs) const { return Point(x + rhs.x, y + rhs.y, z + rhs.z); }
 
-  Point operator-() const {
-    return Point(-x, -y, -z);
-  }
+  Point operator-() const { return Point(-x, -y, -z); }
 
-  Point operator-(Point rhs) const {
-    return Point(x - rhs.x, y - rhs.y, z - rhs.z);
-  }
+  Point operator-(Point rhs) const { return Point(x - rhs.x, y - rhs.y, z - rhs.z); }
 
-  bool operator==(Point rhs) const {
-    return x == rhs.x && y == rhs.y && z == rhs.z;
-  }
+  bool operator==(Point rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
 
   // Rotations as in https://stackoverflow.com/a/16467849
 
