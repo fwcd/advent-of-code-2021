@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <unordered_set>
+#include <optional>
 #include <vector>
 
 struct Point {
@@ -72,13 +73,15 @@ struct Scanner {
     return false;
   }
 
-  bool try_merge(const Scanner &other) {
-    return other.for_each_rotation([this] (const std::vector<Point> &other_points) {
+  std::optional<Point> locate(const Scanner &other) {
+    std::optional<Point> location;
+
+    other.for_each_rotation([this, &location] (const std::vector<Point> &other_points) {
       for (Point bp : points) {
         for (Point bq : other_points) {
           std::unordered_set<Point, Point::Hash> rel_base_points;
           std::unordered_set<Point, Point::Hash> rel_other_points;
-          std::unordered_set<Point, Point::Hash> intersection;
+          int intersection{0};
 
           for (Point p : points) {
             rel_base_points.insert(p - bp);
@@ -88,21 +91,20 @@ struct Scanner {
           }
           for (Point r : rel_base_points) {
             if (rel_other_points.find(r) != rel_other_points.end()) {
-              intersection.insert(r);
+              intersection++;
             }
           }
 
-          if (intersection.size() >= 12) {
-            std::cout << "Found scanner at " << (bp - bq).to_string() << std::endl;
-            for (Point r : rel_other_points) {
-              points.insert(r + bp);
-            }
+          if (intersection >= 12) {
+            location = bp - bq;
             return true;
           }
         }
       }
       return false;
     });
+
+    return location;
   }
 };
 
@@ -145,13 +147,17 @@ int main() {
   }
 
   Scanner combined{scanners[0]};
+  std::unordered_set<int> merged;
 
-  for (int i = 1; i < scanners.size(); i++) {
-    const Scanner &scanner{scanners[i]};
-    if (combined.try_merge(scanner)) {
-      std::cout << "Merged " << i << std::endl;
+  do {
+    for (int i = 1; i < scanners.size(); i++) {
+      const Scanner &scanner{scanners[i]};
+      std::optional<Point> location{combined.locate(scanner)};
+      if (location) {
+        std::cout << "Located " << i << " at " << location->to_string() << std::endl;
+      }
     }
-  }
+  } while (merged.size() < scanners.size() - 1);
 
   std::cout << "Part 1: " << combined.points.size() << std::endl;
 
