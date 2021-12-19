@@ -35,7 +35,7 @@ struct Point {
 
   // Rotations as in https://stackoverflow.com/a/16467849
 
-  Point roll() const { return Point(x, -z, y); }
+  Point roll() const { return Point(x, z, -y); }
 
   Point turn() const { return Point(-y, x, z); }
 
@@ -105,11 +105,6 @@ struct Scanner {
         }
 
         if (intersect.size() >= 12) {
-          std::cout << "Intersection for " << (bq - bp).to_string() << ":" << std::endl;
-          for (Point r : intersect) {
-            std::cout << (bq + r).to_string() << std::endl;
-          }
-          std::cout << std::endl;
           return bq - bp;
         }
       }
@@ -197,6 +192,7 @@ int main() {
           const Scanner &rhs{scanners[ja]};
           std::optional<Point> location{lhs.locate(rhs)};
           if (location) {
+            std::cout << "Scanner " << i << " (" << ir << ") located " << j << " (" << jr << ") at " << location->to_string() << std::endl;
             neighbor_locations[ia].insert({ja, *location});
             neighbor_locations[ja].insert({ia, -*location});
           }
