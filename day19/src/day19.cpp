@@ -174,13 +174,15 @@ void collect_points(
 }
 
 int main() {
-  std::ifstream file{"resources/demo.txt"};
-  Scanner scanner;
   std::vector<Scanner> scanners;
 
-  while (parse_scanner(file, scanner)) {
-    scanners.push_back(scanner);
-    scanner = {};
+  {
+    std::ifstream file{"resources/demo.txt"};
+    Scanner scanner;
+    while (parse_scanner(file, scanner)) {
+      scanners.push_back(scanner);
+      scanner = {};
+    }
   }
 
   std::vector<std::unordered_map<int, Point>> neighbor_locations;
