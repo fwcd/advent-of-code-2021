@@ -105,7 +105,7 @@ struct Scanner {
 
   void merge(const Scanner &other, Point location) {
     for (Point p : other.points) {
-      points.insert(p - location);
+      points.insert(p + location);
     }
   }
 
@@ -118,7 +118,7 @@ struct Scanner {
         Scanner intersection{rel.intersect(rel_other)};
 
         if (intersection.points.size() >= 12) {
-          return bq - bp;
+          return bp - bq;
         }
       }
     }
