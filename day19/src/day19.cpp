@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <unordered_set>
+#include <unordered_map>
 #include <optional>
 #include <vector>
 
@@ -16,6 +17,10 @@ struct Point {
 
   Point operator+(Point rhs) const {
     return Point(x + rhs.x, y + rhs.y, z + rhs.z);
+  }
+
+  Point operator-() const {
+    return Point(-x, -y, -z);
   }
 
   Point operator-(Point rhs) const {
@@ -73,7 +78,13 @@ struct Scanner {
     return false;
   }
 
-  std::optional<Point> locate(const Scanner &other) {
+  void merge(const Scanner &other, Point location) {
+    for (Point p : other.points) {
+      points.insert(p - location);
+    }
+  }
+
+  std::optional<Point> locate(const Scanner &other) const {
     std::optional<Point> location;
 
     other.for_each_rotation([this, &location] (const std::vector<Point> &other_points) {
@@ -147,18 +158,27 @@ int main() {
   }
 
   Scanner combined{scanners[0]};
+  std::vector<std::unordered_map<int, Point>> neighbor_locations;
   std::unordered_set<int> merged;
 
-  do {
-    for (int i = 1; i < scanners.size(); i++) {
-      const Scanner &scanner{scanners[i]};
-      std::optional<Point> location{combined.locate(scanner)};
+  for (int i = 0; i < scanners.size(); i++) {
+    neighbor_locations.push_back(std::unordered_map<int, Point>());
+  }
+
+  for (int i = 0; i < scanners.size(); i++) {
+    for (int j = i + 1; j < scanners.size(); j++) {
+      const Scanner &lhs{scanners[i]};
+      const Scanner &rhs{scanners[j]};
+      std::optional<Point> location{lhs.locate(rhs)};
       if (location) {
-        std::cout << "Located " << i << " at " << location->to_string() << std::endl;
+        std::cout << i << " located " << j << " at " << location->to_string() << std::endl;
+        neighbor_locations[i].insert({j, *location});
+        neighbor_locations[j].insert({i, -*location});
       }
     }
-  } while (merged.size() < scanners.size() - 1);
+  }
 
+  // TODO: Assemble neighbor_locations graph to actual points
   std::cout << "Part 1: " << combined.points.size() << std::endl;
 
   return 0;
