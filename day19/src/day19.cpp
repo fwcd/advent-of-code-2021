@@ -59,13 +59,14 @@ struct Scanner {
 
   // Algorithm for generating the 24 rotations inspired by https://stackoverflow.com/a/58471362
 
-  bool for_each_rotation(std::function<void(const std::vector<Point> &)> action) const {
+  std::vector<Scanner> rotations() const {
+    std::vector<Scanner> rotations;
     std::vector<Point> rotated{points.begin(), points.end()};
     for (int r = 0; r < 6; r++) {
       for (Point &point : rotated) {
         point = point.roll();
       }
-      action(rotated);
+      rotations.push_back({{rotated.begin(), rotated.end()}});
       for (int t = 0; t < 3; t++) {
         for (Point &point : rotated) {
           if (r % 2 == 0) {
@@ -74,10 +75,22 @@ struct Scanner {
             point = point.turn_inv();
           }
         }
-        action(rotated);
+        rotations.push_back({{rotated.begin(), rotated.end()}});
       }
     }
-    return false;
+    return rotations;
+  }
+
+  Scanner operator+(Point offset) const {
+    Scanner result;
+    for (Point p : points) {
+      result.points.insert(p + offset);
+    }
+    return result;
+  }
+
+  Scanner operator-(Point offset) const {
+    return *this + (-offset);
   }
 
   void merge(const Scanner &other, Point location) {
@@ -88,18 +101,14 @@ struct Scanner {
 
   std::optional<Point> locate(const Scanner &other) const {
     for (Point bp : points) {
-      std::unordered_set<Point, Point::Hash> rel_points;
-
-      for (Point p : points) {
-        rel_points.insert(p - bp);
-      }
+      Scanner rel = *this - bp;
 
       for (Point bq : other.points) {
+        Scanner rel_other = other - bq;
         std::unordered_set<Point, Point::Hash> intersect;
 
-        for (Point q : other.points) {
-          Point r{q - bq};
-          if (rel_points.find(r) != rel_points.end()) {
+        for (Point r : rel_other.points) {
+          if (rel.points.find(r) != rel.points.end()) {
             intersect.insert(r);
           }
         }
@@ -171,7 +180,7 @@ int main() {
 
   while (parse_scanner(file, scanner)) {
     scanners.push_back(scanner);
-    scanner = Scanner();
+    scanner = {};
   }
 
   std::vector<std::unordered_map<int, Point>> neighbor_locations;
@@ -184,8 +193,7 @@ int main() {
     for (int j = i + 1; j < scanners.size(); j++) {
       Scanner lhs{scanners[i]};
       Scanner rhs{scanners[j]};
-      rhs.for_each_rotation([i, j, lhs, &scanners, &neighbor_locations] (const std::vector<Point> &points) {
-        Scanner rotated{{points.begin(), points.end()}};
+      for (const Scanner &rotated : rhs.rotations()) {
         std::optional<Point> location{lhs.locate(rotated)};
         if (location) {
           std::cout << "Scanner " << i << " located " << j << " at " << location->to_string() << std::endl;
@@ -193,7 +201,7 @@ int main() {
           neighbor_locations[j].insert({i, -*location});
           scanners[j] = rotated;
         }
-      });
+      }
     }
   }
 
