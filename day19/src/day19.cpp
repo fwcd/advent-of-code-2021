@@ -171,7 +171,6 @@ int main() {
   std::vector<Scanner> scanners;
 
   while (parse_scanner(file, scanner)) {
-    scanners.push_back(scanner);
     scanner.for_each_rotation([&scanners] (const std::vector<Point> &points) {
       scanners.push_back(Scanner({{points.begin(), points.end()}}));
     });
