@@ -88,25 +88,29 @@ struct Scanner {
 
   std::optional<Point> locate(const Scanner &other) const {
     for (Point bp : points) {
-      for (Point bq : other.points) {
-        std::unordered_set<Point, Point::Hash> rel_base_points;
-        std::unordered_set<Point, Point::Hash> rel_other_points;
-        int intersection{0};
+      std::unordered_set<Point, Point::Hash> rel_points;
 
-        for (Point p : points) {
-          rel_base_points.insert(p - bp);
-        }
+      for (Point p : points) {
+        rel_points.insert(p - bp);
+      }
+
+      for (Point bq : other.points) {
+        std::unordered_set<Point, Point::Hash> intersect;
+
         for (Point q : other.points) {
-          rel_other_points.insert(q - bq);
-        }
-        for (Point r : rel_base_points) {
-          if (rel_other_points.find(r) != rel_other_points.end()) {
-            intersection++;
+          Point r{q - bq};
+          if (rel_points.find(r) != rel_points.end()) {
+            intersect.insert(r);
           }
         }
 
-        if (intersection >= 12) {
-          return bp - bq;
+        if (intersect.size() >= 12) {
+          std::cout << "Intersection for " << (bq - bp).to_string() << ":" << std::endl;
+          for (Point r : intersect) {
+            std::cout << (bq + r).to_string() << std::endl;
+          }
+          std::cout << std::endl;
+          return bq - bp;
         }
       }
     }
@@ -197,6 +201,7 @@ int main() {
             neighbor_locations[ja].insert({ia, -*location});
           }
         }
+        if (i == 0) break;
       }
     }
   }
