@@ -150,7 +150,7 @@ void collect_points(
   std::unordered_set<int>& visited,
   Scanner &combined
 ) {
-  std::cout << "Scanner " << (i / ROTATIONS) << " (" << (i % ROTATIONS) << ") is at " << offset.to_string() << std::endl;
+  std::cout << "Scanner " << i << " is at " << offset.to_string() << std::endl;
   combined.merge(scanners[i], offset);
 
   for (auto neighbor : neighbor_locations[i]) {
@@ -165,14 +165,12 @@ void collect_points(
 }
 
 int main() {
-  std::ifstream file{"resources/input.txt"};
+  std::ifstream file{"resources/demo.txt"};
   Scanner scanner;
   std::vector<Scanner> scanners;
 
   while (parse_scanner(file, scanner)) {
-    scanner.for_each_rotation([&scanners] (const std::vector<Point> &points) {
-      scanners.push_back(Scanner({{points.begin(), points.end()}}));
-    });
+    scanners.push_back(scanner);
     scanner = Scanner();
   }
 
@@ -182,23 +180,20 @@ int main() {
     neighbor_locations.push_back(std::unordered_map<int, Point>());
   }
 
-  for (int i = 0; i < scanners.size() / ROTATIONS; i++) {
-    for (int j = i + 1; j < scanners.size() / ROTATIONS; j++) {
-      for (int ir = 0; ir < ROTATIONS; ir++) {
-        for (int jr = 0; jr < ROTATIONS; jr++) {
-          int ia{i * ROTATIONS + ir};
-          int ja{j * ROTATIONS + jr};
-          const Scanner &lhs{scanners[ia]};
-          const Scanner &rhs{scanners[ja]};
-          std::optional<Point> location{lhs.locate(rhs)};
-          if (location) {
-            std::cout << "Scanner " << i << " (" << ir << ") located " << j << " (" << jr << ") at " << location->to_string() << std::endl;
-            neighbor_locations[ia].insert({ja, *location});
-            neighbor_locations[ja].insert({ia, -*location});
-          }
+  for (int i = 0; i < scanners.size(); i++) {
+    for (int j = i + 1; j < scanners.size(); j++) {
+      Scanner lhs{scanners[i]};
+      Scanner rhs{scanners[j]};
+      rhs.for_each_rotation([i, j, lhs, &scanners, &neighbor_locations] (const std::vector<Point> &points) {
+        Scanner rotated{{points.begin(), points.end()}};
+        std::optional<Point> location{lhs.locate(rotated)};
+        if (location) {
+          std::cout << "Scanner " << i << " located " << j << " at " << location->to_string() << std::endl;
+          neighbor_locations[i].insert({j, *location});
+          neighbor_locations[j].insert({i, -*location});
+          scanners[j] = rotated;
         }
-        if (i == 0) break;
-      }
+      });
     }
   }
 
