@@ -8,8 +8,6 @@
 #include <optional>
 #include <vector>
 
-#define ROTATIONS 24
-
 struct Point {
   int x;
   int y;
