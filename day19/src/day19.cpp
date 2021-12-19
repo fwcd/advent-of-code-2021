@@ -93,6 +93,7 @@ struct Scanner {
           }
 
           if (intersection.size() >= 12) {
+            std::cout << "Found scanner at " << (bp - bq).to_string() << std::endl;
             for (Point r : rel_other_points) {
               points.insert(r + bp);
             }
