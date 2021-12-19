@@ -111,11 +111,11 @@ struct Scanner {
 
   std::optional<Point> locate(const Scanner &other) const {
     for (Point bp : points) {
-      Scanner rel = *this - bp;
+      Scanner rel{*this - bp};
 
       for (Point bq : other.points) {
-        Scanner rel_other = other - bq;
-        Scanner intersection = rel.intersect(rel_other);
+        Scanner rel_other{other - bq};
+        Scanner intersection{rel.intersect(rel_other)};
 
         if (intersection.points.size() >= 12) {
           return bq - bp;
