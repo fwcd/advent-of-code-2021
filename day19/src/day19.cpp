@@ -1,6 +1,10 @@
 #include <iostream>
+#include <fstream>
 
 int main() {
-  std::cout << "Hello world!" << std::endl;
+  std::ifstream file{"resources/demo.txt"};
+  std::string input;
+  std::getline(file, input);
+  std::cout << input << std::endl;
   return 0;
 }
