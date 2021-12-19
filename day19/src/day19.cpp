@@ -157,8 +157,7 @@ bool parse_scanner(std::ifstream &file, Scanner &scanner) {
   if (!std::getline(file, line)) return false;
   if (line.rfind("---", 0) != 0) return false;
   while (true) {
-    if (!std::getline(file, line)) return false;
-    if (line.empty()) break;
+    if (!std::getline(file, line) || line.empty()) break;
     scanner.points.insert(parse_point(line));
   }
   return true;
