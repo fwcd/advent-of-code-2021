@@ -165,7 +165,7 @@ void collect_points(
 }
 
 int main() {
-  std::ifstream file{"resources/demo.txt"};
+  std::ifstream file{"resources/input.txt"};
   Scanner scanner;
   std::vector<Scanner> scanners;
 
