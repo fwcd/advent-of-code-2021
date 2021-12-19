@@ -8,6 +8,8 @@
 #include <optional>
 #include <vector>
 
+#define ROTATIONS 24
+
 struct Point {
   int x;
   int y;
@@ -141,40 +143,69 @@ bool parse_scanner(std::ifstream &file, Scanner &scanner) {
   return true;
 }
 
+void collect_points(
+  int i,
+  Point offset,
+  const std::vector<Scanner> &scanners,
+  const std::vector<std::unordered_map<int, Point>> &neighbor_locations,
+  std::unordered_set<int>& visited,
+  Scanner &combined
+) {
+  std::cout << "Scanner " << (i / ROTATIONS) << " (" << (i % ROTATIONS) << ") is at " << offset.to_string() << std::endl;
+  combined.merge(scanners[i], offset);
+
+  for (auto neighbor : neighbor_locations[i]) {
+    int j{neighbor.first};
+    Point location{neighbor.second};
+
+    if (visited.find(j) == visited.end()) {
+      visited.insert(j);
+      collect_points(j, offset + location, scanners, neighbor_locations, visited, combined);
+    }
+  }
+}
+
 int main() {
   std::ifstream file{"resources/demo.txt"};
   Scanner scanner;
   std::vector<Scanner> scanners;
 
   while (parse_scanner(file, scanner)) {
+    scanners.push_back(scanner);
     scanner.for_each_rotation([&scanners] (const std::vector<Point> &points) {
       scanners.push_back(Scanner({{points.begin(), points.end()}}));
     });
     scanner = Scanner();
   }
 
-  Scanner combined{scanners[0]};
   std::vector<std::unordered_map<int, Point>> neighbor_locations;
-  std::unordered_set<int> merged;
 
   for (int i = 0; i < scanners.size(); i++) {
     neighbor_locations.push_back(std::unordered_map<int, Point>());
   }
 
-  for (int i = 0; i < scanners.size(); i++) {
-    for (int j = i + 1; j < scanners.size(); j++) {
-      const Scanner &lhs{scanners[i]};
-      const Scanner &rhs{scanners[j]};
-      std::optional<Point> location{lhs.locate(rhs)};
-      if (location) {
-        std::cout << i << " located " << j << " at " << location->to_string() << std::endl;
-        neighbor_locations[i].insert({j, *location});
-        neighbor_locations[j].insert({i, -*location});
+  for (int i = 0; i < scanners.size() / ROTATIONS; i++) {
+    for (int j = i + 1; j < scanners.size() / ROTATIONS; j++) {
+      for (int ir = 0; ir < ROTATIONS; ir++) {
+        for (int jr = 0; jr < ROTATIONS; jr++) {
+          int ia{i * ROTATIONS + ir};
+          int ja{j * ROTATIONS + jr};
+          const Scanner &lhs{scanners[ia]};
+          const Scanner &rhs{scanners[ja]};
+          std::optional<Point> location{lhs.locate(rhs)};
+          if (location) {
+            neighbor_locations[ia].insert({ja, *location});
+            neighbor_locations[ja].insert({ia, -*location});
+          }
+        }
       }
     }
   }
 
-  // TODO: Assemble neighbor_locations graph to actual points
+  // Assemble neighbor_locations graph to actual points
+  Scanner combined;
+  std::unordered_set<int> visited;
+  collect_points(0, Point(0, 0, 0), scanners, neighbor_locations, visited, combined);
   std::cout << "Part 1: " << combined.points.size() << std::endl;
 
   return 0;
