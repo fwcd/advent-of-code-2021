@@ -12,15 +12,23 @@ struct Point {
 
   Point(int x, int y, int z) : x(x), y(y), z(z) {}
 
-  Point operator+(Point rhs) {
+  Point operator+(Point rhs) const {
     return Point(x + rhs.x, y + rhs.y, z + rhs.z);
   }
 
-  Point operator-(Point rhs) {
+  Point operator-(Point rhs) const {
     return Point(x - rhs.x, y - rhs.y, z - rhs.z);
   }
 
-  std::string to_string() {
+  // Rotations as in https://stackoverflow.com/a/16467849
+
+  Point roll() const { return Point(x, -z, y); }
+
+  Point turn() const { return Point(-y, x, z); }
+
+  Point turn_inv() const { return Point(y, -x, z); }
+
+  std::string to_string() const {
     std::stringstream ss;
     ss << "(" << x << ", " << y << ", " << z << ")";
     return ss.str();
@@ -29,6 +37,28 @@ struct Point {
 
 struct Scanner {
   std::vector<Point> points;
+
+  // Algorithm for generating the 24 rotations inspired by https://stackoverflow.com/a/58471362
+
+  void for_each_rotation(std::function<void(const std::vector<Point> &)> action) const {
+    std::vector<Point> rotated{points};
+    for (int r = 0; r < 6; r++) {
+      for (Point &point : rotated) {
+        point = point.roll();
+      }
+      action(rotated);
+      for (int t = 0; t < 3; t++) {
+        for (Point &point : rotated) {
+          if (r % 2 == 0) {
+            point = point.turn();
+          } else {
+            point = point.turn_inv();
+          }
+        }
+        action(rotated);
+      }
+    }
+  }
 };
 
 int parse_component(std::string input, int &i) {
@@ -64,11 +94,13 @@ int main() {
   Scanner scanner;
   std::vector<Scanner> scanners;
 
+  // Only for testing
+  Scanner s{{Point(1, 2, 3)}};
+  s.for_each_rotation([] (const std::vector<Point> &points) {
+    std::cout << points[0].to_string() << std::endl;
+  });
+
   while (parse_scanner(file, scanner)) {
-    for (auto point : scanner.points) {
-      std::cout << point.to_string() << std::endl;
-    }
-    std::cout << std::endl;
     scanners.push_back(scanner);
     scanner = Scanner();
   }
