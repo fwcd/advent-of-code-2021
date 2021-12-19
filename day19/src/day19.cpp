@@ -190,7 +190,7 @@ int main() {
   std::vector<Scanner> scanners;
 
   {
-    std::ifstream file{"resources/rotations.txt"};
+    std::ifstream file{"resources/demo.txt"};
     Scanner scanner;
     while (parse_scanner(file, scanner)) {
       scanners.push_back(scanner);
