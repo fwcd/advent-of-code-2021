@@ -70,5 +70,9 @@
   {
     "lang": "haskell",
     "path": "day18/src/Main.curry"
+  },
+  {
+    "lang": "clike",
+    "path": "day19/src/day19.cpp"
   }
 ]

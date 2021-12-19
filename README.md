@@ -20,7 +20,7 @@ My solutions to the [Advent of Code 2021](https://adventofcode.com/2021), writte
 - [x] Day 16: TypeScript
 - [x] Day 17: Kotlin
 - [x] Day 18: Curry
-- [ ] Day 19
+- [ ] Day 19: C++
 - [ ] Day 20
 - [ ] Day 21
 - [ ] Day 22
