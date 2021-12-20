@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 require 'set'
 
+$point_memo = {}
+
 def neighborhood(point)
   y, x = point
   (-1..1).flat_map do |dy|
@@ -11,7 +13,14 @@ def neighborhood(point)
 end
 
 def point_at?(p, steps, points, algo)
-  if steps == 0
+  key = p + [steps]
+  memo = $point_memo[key]
+
+  unless memo.nil?
+    return memo
+  end
+
+  value = if steps == 0
     points.include?(p)
   else
     encoded = neighborhood(p)
@@ -19,6 +28,9 @@ def point_at?(p, steps, points, algo)
       .inject(0) { |v, b| (v << 1) | b }
     algo[encoded] == '#'
   end
+
+  $point_memo[key] = value
+  value
 end
 
 def extreme_point(points)
@@ -54,3 +66,4 @@ points = (0...height).flat_map do |y|
 end.to_set
 
 puts "Part 1: #{compute_count(2, points, height, width, algo)}"
+puts "Part 2: #{compute_count(50, points, height, width, algo)}"
