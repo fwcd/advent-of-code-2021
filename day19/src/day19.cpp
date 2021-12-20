@@ -239,7 +239,7 @@ int main() {
 
   // Parse the input
   {
-    std::ifstream file{"resources/demo.txt"};
+    std::ifstream file{"resources/input.txt"};
     Scanner scanner;
     while (parse_scanner(file, scanner)) {
       scanners.push_back(scanner);
