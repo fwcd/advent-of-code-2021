@@ -144,9 +144,9 @@ struct Scanner {
     return result;
   }
 
-  void merge(const Scanner &other, Point location) {
+  void merge(const Scanner &other) {
     for (Point p : other.points) {
-      points.insert(p + location);
+      points.insert(p);
     }
   }
 
@@ -204,33 +204,32 @@ bool parse_scanner(std::ifstream &file, Scanner &scanner) {
   return true;
 }
 
-struct Neighbor {
-  Point offset;
-  Rotation rotation;
-
-  Neighbor(Point offset, Rotation rotation) : offset(offset), rotation(rotation) {}
-
-  Neighbor compose(Neighbor rhs) { return {offset + rhs.offset, rotation.compose(rhs.rotation)}; }
-};
-
-void collect_points(
+void explore(
   int i,
-  Neighbor current,
-  const std::vector<Scanner> &scanners,
-  const std::vector<std::unordered_map<int, Neighbor>> &neighbor_locations,
-  std::unordered_set<int>& visited,
-  Scanner &combined
+  Point current,
+  std::vector<Scanner> &scanners,
+  Scanner &combined,
+  std::unordered_set<int> &visited
 ) {
-  std::cout << "Scanner " << i << " is at " << current.offset.to_string() << std::endl;
-  combined.merge(scanners[i].apply(current.rotation), current.offset);
-
-  for (auto entry : neighbor_locations[i]) {
-    int j{entry.first};
-    Neighbor neighbor{entry.second};
-
+  visited.insert(i);
+  const Scanner &lhs{scanners[i]};
+  combined.merge(lhs + current);
+  for (int j = 0; j < scanners.size(); j++) {
     if (visited.find(j) == visited.end()) {
-      visited.insert(j);
-      collect_points(j, neighbor.compose(current), scanners, neighbor_locations, visited, combined);
+      const Scanner &rhs{scanners[j]};
+      for (Rotation rotation : generate_rotations()) {
+        Scanner rotated{rhs.apply(rotation)};
+        std::optional<Point> location{lhs.locate(rotated)};
+        if (location) {
+          // Yay, we found a match! Now let's orient the scanner to scanner 0's
+          // coordinate system (the canonical one) and explore it...
+          Point next{current + *location};
+          std::cout << "Scanner " << i << " located " << j << " at " << next.to_string() << std::endl;
+          scanners[j] = rotated;
+          explore(j, next, scanners, combined, visited);
+          break;
+        }
+      }
     }
   }
 }
@@ -248,40 +247,10 @@ int main() {
     }
   }
 
-  std::vector<Rotation> all_rotations{generate_rotations()};
-  std::vector<std::unordered_map<int, Neighbor>> neighbor_locations;
-  std::vector<bool> frozen;
-
-  for (int i = 0; i < scanners.size(); i++) {
-    neighbor_locations.push_back({});
-    frozen.push_back(i == 0);
-  }
-
-  // Figure out rotations & offsets (the heavy lifting)
-  for (int i = 0; i < scanners.size(); i++) {
-    for (int j = i + 1; j < scanners.size(); j++) {
-      Scanner lhs{scanners[i]};
-      Scanner rhs{scanners[j]};
-      for (Rotation rotation : all_rotations) {
-        Scanner rotated{rhs.apply(rotation)};
-        std::optional<Point> location{lhs.locate(rotated)};
-        if (location) {
-          std::cout << "Scanner " << i << " located " << j << " with offset " << location->to_string() << std::endl;
-          neighbor_locations[i].insert({j, {*location, rotation}});
-          if (frozen[i] && !frozen[j]) {
-            scanners[j] = rotated;
-            frozen[j] = true;
-          }
-          break;
-        }
-      }
-    }
-  }
-
-  // Assemble neighbor_locations graph to actual points
+  // Assemble combined scanner by traversing the graph depth-first
   Scanner combined;
   std::unordered_set<int> visited;
-  collect_points(0, {{0, 0, 0}, ID}, scanners, neighbor_locations, visited, combined);
+  explore(0, {0, 0, 0}, scanners, combined, visited);
   std::cout << "Part 1: " << combined.points.size() << std::endl;
 
   return 0;
