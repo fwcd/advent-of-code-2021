@@ -1,8 +1,8 @@
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <stdexcept>
 #include <functional>
 #include <unordered_set>
 #include <unordered_map>
@@ -10,43 +10,28 @@
 #include <vector>
 
 struct Rotation {
-  int ix;
-  int iy;
-  int iz;
-  int flip_x;
-  int flip_y;
-  int flip_z;
+  std::array<int, 3> indices;
+  std::array<int, 3> flips;
 
   Rotation(int ix, int iy, int iz, int flip_x, int flip_y, int flip_z)
-    : ix(ix), iy(iy), iz(iz), flip_x(flip_x), flip_y(flip_y), flip_z(flip_z) {}
-
-  int operator[](int index) const {
-    switch (index) {
-    case 0: return ix;
-    case 1: return iy;
-    case 2: return iz;
-    default: throw std::invalid_argument("Index out of bounds");
-    }
-  }
-
-  int flip(int index) const {
-    switch (index) {
-    case 0: return flip_x;
-    case 1: return flip_y;
-    case 2: return flip_z;
-    default: throw std::invalid_argument("Index out of bounds");
-    }
-  }
+    : indices({ix, iy, iz}), flips({flip_x, flip_y, flip_z}) {}
 
   Rotation compose(Rotation lhs) const {
-    return {lhs[ix], lhs[iy], lhs[iz], flip_x * lhs.flip(ix), flip_y * lhs.flip(iy), flip_z * lhs.flip(iz)};
+    return {
+      lhs.indices[indices[0]],
+      lhs.indices[indices[1]],
+      lhs.indices[indices[2]],
+      flips[0] * lhs.flips[indices[0]],
+      flips[1] * lhs.flips[indices[1]],
+      flips[2] * lhs.flips[indices[2]]
+    };
   }
 
   // Rotations as in https://stackoverflow.com/a/16467849
 
   std::string to_string() const {
     std::stringstream ss;
-    ss << "<" << ix << ", " << iy << ", " << iz << ">";
+    ss << "<" << indices[0] << ", " << indices[1] << ", " << indices[2] << ">";
     return ss.str();
   }
 };
@@ -57,42 +42,41 @@ const Rotation TURN{1, 0, 2, -1, 1, 1};
 const Rotation TURN_INV{1, 0, 2, 1, -1, 1};
 
 struct Point {
-  int x;
-  int y;
-  int z;
+  std::array<int, 3> xyz;
 
-  Point(int x, int y, int z) : x(x), y(y), z(z) {}
+  Point(int x, int y, int z) : xyz({x, y, z}) {}
 
-  Point operator+(Point rhs) const { return {x + rhs.x, y + rhs.y, z + rhs.z}; }
+  inline int x() const { return xyz[0]; }
 
-  Point operator-() const { return {-x, -y, -z}; }
+  inline int y() const { return xyz[1]; }
 
-  Point operator-(Point rhs) const { return {x - rhs.x, y - rhs.y, z - rhs.z}; }
+  inline int z() const { return xyz[2]; }
 
-  bool operator==(Point rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
+  Point operator+(Point rhs) const { return {x() + rhs.x(), y() + rhs.y(), z() + rhs.z()}; }
 
-  int operator[](int index) const {
-    switch (index) {
-    case 0: return x;
-    case 1: return y;
-    case 2: return z;
-    default: throw std::invalid_argument("Index out of bounds");
-    }
-  }
+  Point operator-() const { return {-x(), -y(), -z()}; }
+
+  Point operator-(Point rhs) const { return {x() - rhs.x(), y() - rhs.y(), z() - rhs.z()}; }
+
+  bool operator==(Point rhs) const { return x() == rhs.x() && y() == rhs.y() && z() == rhs.z(); }
 
   Point apply(Rotation rotation) const {
-    return {(*this)[rotation.ix], (*this)[rotation.iy], (*this)[rotation.iz]};
+    return {
+      xyz[rotation.indices[0]] * rotation.flips[0],
+      xyz[rotation.indices[1]] * rotation.flips[1],
+      xyz[rotation.indices[2]] * rotation.flips[2]
+    };
   }
 
   std::string to_string() const {
     std::stringstream ss;
-    ss << "(" << x << ", " << y << ", " << z << ")";
+    ss << "(" << x() << ", " << y() << ", " << z() << ")";
     return ss.str();
   }
 
   struct Hash {
     size_t operator()(const Point &point) const {
-      return point.x ^ (point.y << 1) ^ (point.z << 2);
+      return point.x() ^ (point.y() << 1) ^ (point.z() << 2);
     }
   };
 };
