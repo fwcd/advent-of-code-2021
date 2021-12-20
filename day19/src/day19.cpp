@@ -90,6 +90,8 @@ struct Point {
 
   bool operator==(Point rhs) const { return x() == rhs.x() && y() == rhs.y() && z() == rhs.z(); }
 
+  int manhattan() const { return std::abs(x()) + std::abs(y()) + std::abs(z()); }
+
   Point apply(Rotation rotation) const {
     return {
       xyz[rotation.indices[0]] * rotation.flips[0],
@@ -209,6 +211,7 @@ void explore(
   Point current,
   std::vector<Scanner> &scanners,
   Scanner &combined,
+  std::vector<Point> &scanner_locations,
   std::unordered_set<int> &visited
 ) {
   visited.insert(i);
@@ -225,8 +228,9 @@ void explore(
           // coordinate system (the canonical one) and explore it...
           Point next{current + *location};
           std::cout << "Scanner " << i << " located " << j << " at " << next.to_string() << std::endl;
+          scanner_locations[j] = next;
           scanners[j] = rotated;
-          explore(j, next, scanners, combined, visited);
+          explore(j, next, scanners, combined, scanner_locations, visited);
           break;
         }
       }
@@ -247,11 +251,28 @@ int main() {
     }
   }
 
-  // Assemble combined scanner by traversing the graph depth-first
   Scanner combined;
   std::unordered_set<int> visited;
-  explore(0, {0, 0, 0}, scanners, combined, visited);
-  std::cout << "Part 1: " << combined.points.size() << std::endl;
+  std::vector<Point> scanner_locations;
+
+  for (int i = 0; i < scanners.size(); i++) {
+    scanner_locations.push_back({0, 0, 0});
+  }
+
+  // Traverse the graph of scanners depth-first
+  explore(0, {0, 0, 0}, scanners, combined, scanner_locations, visited);
+
+  size_t part1{combined.points.size()};
+  std::cout << "Part 1: " << part1 << std::endl;
+
+  // Compute largest Manhattan distance
+  int part2{0};
+  for (int i = 0; i < scanner_locations.size(); i++) {
+    for (int j = i + 1; j < scanner_locations.size(); j++) {
+      part2 = std::max(part2, (scanner_locations[i] - scanner_locations[j]).manhattan());
+    }
+  }
+  std::cout << "Part 2: " << part2 << std::endl;
 
   return 0;
 }
