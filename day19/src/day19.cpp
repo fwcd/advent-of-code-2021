@@ -16,22 +16,33 @@ struct Rotation {
   Rotation(int ix, int iy, int iz, int flip_x, int flip_y, int flip_z)
     : indices({ix, iy, iz}), flips({flip_x, flip_y, flip_z}) {}
 
-  Rotation compose(Rotation lhs) const {
+  Rotation compose(Rotation rhs) const {
     return {
-      lhs.indices[indices[0]],
-      lhs.indices[indices[1]],
-      lhs.indices[indices[2]],
-      flips[0] * lhs.flips[indices[0]],
-      flips[1] * lhs.flips[indices[1]],
-      flips[2] * lhs.flips[indices[2]]
+      rhs.indices[indices[0]],
+      rhs.indices[indices[1]],
+      rhs.indices[indices[2]],
+      flips[0] * rhs.flips[indices[0]],
+      flips[1] * rhs.flips[indices[1]],
+      flips[2] * rhs.flips[indices[2]]
     };
+  }
+
+  Rotation inverse() const {
+    Rotation inv{0, 0, 0, 0, 0, 0};
+    for (int i = 0; i < 3; i++) {
+      inv.indices[indices[i]] = i;
+      inv.flips[indices[i]] = flips[i];
+    }
+    return inv;
   }
 
   // Rotations as in https://stackoverflow.com/a/16467849
 
   std::string to_string() const {
     std::stringstream ss;
-    ss << "<" << indices[0] << ", " << indices[1] << ", " << indices[2] << ">";
+    ss << "<" << (flips[0] < 0 ? "-" : "") << indices[0]
+      << ", " << (flips[1] < 0 ? "-" : "") << indices[1]
+      << ", " << (flips[2] < 0 ? "-" : "") << indices[2] << ">";
     return ss.str();
   }
 };
@@ -39,7 +50,6 @@ struct Rotation {
 const Rotation ID{0, 1, 2, 1, 1, 1};
 const Rotation ROLL{0, 2, 1, 1, 1, -1};
 const Rotation TURN{1, 0, 2, -1, 1, 1};
-const Rotation TURN_INV{1, 0, 2, 1, -1, 1};
 
 // Algorithm for generating the 24 rotations inspired by https://stackoverflow.com/a/58471362
 
@@ -53,7 +63,7 @@ std::vector<Rotation> generate_rotations() {
       if (r % 2 == 0) {
         rotation = TURN.compose(rotation);
       } else {
-        rotation = TURN_INV.compose(rotation);
+        rotation = TURN.inverse().compose(rotation);
       }
       rotations.push_back(rotation);
     }
@@ -194,24 +204,33 @@ bool parse_scanner(std::ifstream &file, Scanner &scanner) {
   return true;
 }
 
+struct Neighbor {
+  Point offset;
+  Rotation rotation;
+
+  Neighbor(Point offset, Rotation rotation) : offset(offset), rotation(rotation) {}
+
+  Neighbor compose(Neighbor rhs) { return {offset + rhs.offset, rotation.compose(rhs.rotation)}; }
+};
+
 void collect_points(
   int i,
-  Point offset,
+  Neighbor current,
   const std::vector<Scanner> &scanners,
-  const std::vector<std::unordered_map<int, Point>> &neighbor_locations,
+  const std::vector<std::unordered_map<int, Neighbor>> &neighbor_locations,
   std::unordered_set<int>& visited,
   Scanner &combined
 ) {
-  std::cout << "Scanner " << i << " is at " << offset.to_string() << std::endl;
-  combined.merge(scanners[i], offset);
+  std::cout << "Scanner " << i << " is at " << current.offset.to_string() << std::endl;
+  combined.merge(scanners[i].apply(current.rotation), current.offset);
 
-  for (auto neighbor : neighbor_locations[i]) {
-    int j{neighbor.first};
-    Point location{neighbor.second};
+  for (auto entry : neighbor_locations[i]) {
+    int j{entry.first};
+    Neighbor neighbor{entry.second};
 
     if (visited.find(j) == visited.end()) {
       visited.insert(j);
-      collect_points(j, offset + location, scanners, neighbor_locations, visited, combined);
+      collect_points(j, neighbor.compose(current), scanners, neighbor_locations, visited, combined);
     }
   }
 }
@@ -229,29 +248,24 @@ int main() {
   }
 
   std::vector<Rotation> all_rotations{generate_rotations()};
-  std::vector<std::unordered_map<int, Point>> neighbor_locations;
-  std::vector<bool> frozen;
+  std::vector<std::unordered_map<int, Neighbor>> neighbor_locations;
 
   for (int i = 0; i < scanners.size(); i++) {
-    neighbor_locations.push_back(std::unordered_map<int, Point>());
-    frozen.push_back(false);
+    neighbor_locations.push_back({});
   }
 
   for (int i = 0; i < scanners.size(); i++) {
-    for (int j = 0; j < scanners.size(); j++) {
+    for (int j = i + 1; j < scanners.size(); j++) {
       if (i != j) {
         Scanner lhs{scanners[i]};
         Scanner rhs{scanners[j]};
-        auto rotations{frozen[j] ? std::vector<Rotation>{ID} : all_rotations};
-        for (Rotation rotation : rotations) {
+        for (Rotation rotation : all_rotations) {
           Scanner rotated{rhs.apply(rotation)};
           std::optional<Point> location{lhs.locate(rotated)};
           if (location) {
             std::cout << "Scanner " << i << " located " << j << " at " << location->to_string() << std::endl;
-            neighbor_locations[i].insert({j, *location});
-            neighbor_locations[j].insert({i, -*location});
-            scanners[j] = rotated;
-            frozen[j] = true;
+            neighbor_locations[i].insert({j, {*location, rotation}});
+            neighbor_locations[j].insert({i, {-*location, rotation.inverse()}});
             break;
           }
         }
@@ -262,7 +276,7 @@ int main() {
   // Assemble neighbor_locations graph to actual points
   Scanner combined;
   std::unordered_set<int> visited;
-  collect_points(0, {0, 0, 0}, scanners, neighbor_locations, visited, combined);
+  collect_points(0, {{0, 0, 0}, ID}, scanners, neighbor_locations, visited, combined);
   std::cout << "Part 1: " << combined.points.size() << std::endl;
 
   return 0;
