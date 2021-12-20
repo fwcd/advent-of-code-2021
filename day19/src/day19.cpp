@@ -250,9 +250,11 @@ int main() {
 
   std::vector<Rotation> all_rotations{generate_rotations()};
   std::vector<std::unordered_map<int, Neighbor>> neighbor_locations;
+  std::vector<bool> frozen;
 
   for (int i = 0; i < scanners.size(); i++) {
     neighbor_locations.push_back({});
+    frozen.push_back(i == 0);
   }
 
   // Figure out rotations & offsets (the heavy lifting)
@@ -266,7 +268,10 @@ int main() {
         if (location) {
           std::cout << "Scanner " << i << " located " << j << " with offset " << location->to_string() << std::endl;
           neighbor_locations[i].insert({j, {*location, rotation}});
-          neighbor_locations[j].insert({i, {-*location, rotation.inverse()}});
+          if (frozen[i] && !frozen[j]) {
+            scanners[j] = rotated;
+            frozen[j] = true;
+          }
           break;
         }
       }
