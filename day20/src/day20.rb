@@ -13,25 +13,27 @@ def neighborhood(point)
   end
 end
 
-def encode(ps, points)
-  ps
-    .map { |p| points.include?(p) ? 1 : 0 }
-    .inject(0) { |v, b| (v << 1) | b }
+def point_at?(p, steps, points, algo)
+  if steps == 0
+    points.include?(p)
+  else
+    encoded = neighborhood(p)
+      .map { |q| point_at?(q, steps - 1, points, algo) ? 1 : 0 }
+      .inject(0) { |v, b| (v << 1) | b }
+    algo[encoded] == '#'
+  end
 end
 
-def step(points, algo)
-  points
-    .flat_map { |p| neighborhood(p) }
-    .filter { |p| algo[encode(neighborhood(p), points)] == '#' }
-    .to_set
+def extreme_point(points)
+  points.reduce { |p, q| p.zip(q).map { |vs| yield vs } }
 end
 
-def stringify(points)
-  min_point = points.reduce { |p, q| p.zip(q).map { |vs| vs.min } }
-  max_point = points.reduce { |p, q| p.zip(q).map { |vs| vs.max } }
-  (min_point[0]..max_point[0]).map do |y|
-    (min_point[1]..max_point[1]).map do |x|
-      points.include?([y, x]) ? '#' : '.'
+def stringify(steps, points, algo)
+  min_x, min_y = extreme_point(points) { |vs| vs.min }
+  max_x, max_y = extreme_point(points) { |vs| vs.max }
+  ((min_x - steps)..(max_x + steps)).map do |y|
+    ((min_y - steps)..(max_y + steps)).map do |x|
+      point_at?([y, x], steps, points, algo) ? '#' : '.'
     end.join
   end.join("\n")
 end
@@ -42,4 +44,11 @@ points = (0...input.length).flat_map do |y|
   end
 end.to_set
 
-puts "Part 1: #{step(step(points, algo), algo).length}"
+steps = 2
+part1 = ((-steps)...(input.length + steps)).map do |y|
+  ((-steps)...(input[0].length + steps)).count do |x|
+    point_at?([y, x], steps, points, algo)
+  end
+end.sum
+
+puts "Part 1: #{part1}"
