@@ -9,6 +9,7 @@
 #include <optional>
 #include <vector>
 
+/// One of 24 axis-aligned rotations in 3D.
 struct Rotation {
   std::array<int, 3> indices;
   std::array<int, 3> flips;
@@ -36,8 +37,6 @@ struct Rotation {
     return inv;
   }
 
-  // Rotations as in https://stackoverflow.com/a/16467849
-
   std::string to_string() const {
     std::stringstream ss;
     ss << "<" << (flips[0] < 0 ? "-" : "") << indices[0]
@@ -47,11 +46,12 @@ struct Rotation {
   }
 };
 
+// Algorithm for generating the 24 rotations inspired by
+// https://stackoverflow.com/a/58471362 and https://stackoverflow.com/a/16467849
+
 const Rotation ID{0, 1, 2, 1, 1, 1};
 const Rotation ROLL{0, 2, 1, 1, 1, -1};
 const Rotation TURN{1, 0, 2, -1, 1, 1};
-
-// Algorithm for generating the 24 rotations inspired by https://stackoverflow.com/a/58471362
 
 std::vector<Rotation> generate_rotations() {
   Rotation rotation{ID};
@@ -71,6 +71,7 @@ std::vector<Rotation> generate_rotations() {
   return rotations;
 }
 
+/// A point or vector in 3D space.
 struct Point {
   std::array<int, 3> xyz;
 
