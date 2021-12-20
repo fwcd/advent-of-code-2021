@@ -41,6 +41,26 @@ const Rotation ROLL{0, 2, 1, 1, 1, -1};
 const Rotation TURN{1, 0, 2, -1, 1, 1};
 const Rotation TURN_INV{1, 0, 2, 1, -1, 1};
 
+// Algorithm for generating the 24 rotations inspired by https://stackoverflow.com/a/58471362
+
+std::vector<Rotation> generate_rotations() {
+  Rotation rotation{ID};
+  std::vector<Rotation> rotations;
+  for (int r = 0; r < 6; r++) {
+    rotation = ROLL.compose(rotation);
+    rotations.push_back(rotation);
+    for (int t = 0; t < 3; t++) {
+      if (r % 2 == 0) {
+        rotation = TURN.compose(rotation);
+      } else {
+        rotation = TURN_INV.compose(rotation);
+      }
+      rotations.push_back(rotation);
+    }
+  }
+  return rotations;
+}
+
 struct Point {
   std::array<int, 3> xyz;
 
@@ -84,30 +104,6 @@ struct Point {
 struct Scanner {
   std::unordered_set<Point, Point::Hash> points;
 
-  // Algorithm for generating the 24 rotations inspired by https://stackoverflow.com/a/58471362
-
-  std::vector<Scanner> rotations() const {
-    std::vector<Scanner> rotations;
-    std::vector<Point> rotated{points.begin(), points.end()};
-    for (int r = 0; r < 6; r++) {
-      for (Point &point : rotated) {
-        point = point.apply(ROLL);
-      }
-      rotations.push_back({{rotated.begin(), rotated.end()}});
-      for (int t = 0; t < 3; t++) {
-        for (Point &point : rotated) {
-          if (r % 2 == 0) {
-            point = point.apply(TURN);
-          } else {
-            point = point.apply(TURN_INV);
-          }
-        }
-        rotations.push_back({{rotated.begin(), rotated.end()}});
-      }
-    }
-    return rotations;
-  }
-
   Scanner operator+(Point offset) const {
     Scanner result;
     for (Point p : points) {
@@ -118,6 +114,14 @@ struct Scanner {
 
   Scanner operator-(Point offset) const {
     return *this + (-offset);
+  }
+
+  Scanner apply(Rotation rotation) const {
+    Scanner result;
+    for (Point p : points) {
+      result.points.insert(p.apply(rotation));
+    }
+    return result;
   }
 
   Scanner intersect(const Scanner &other) const {
@@ -224,6 +228,7 @@ int main() {
     }
   }
 
+  std::vector<Rotation> all_rotations{generate_rotations()};
   std::vector<std::unordered_map<int, Point>> neighbor_locations;
   std::vector<bool> frozen;
 
@@ -237,8 +242,9 @@ int main() {
       if (i != j) {
         Scanner lhs{scanners[i]};
         Scanner rhs{scanners[j]};
-        auto rotations{frozen[j] ? std::vector<Scanner>{rhs} : rhs.rotations()};
-        for (const Scanner &rotated : rotations) {
+        auto rotations{frozen[j] ? std::vector<Rotation>{ID} : all_rotations};
+        for (Rotation rotation : rotations) {
+          Scanner rotated{rhs.apply(rotation)};
           std::optional<Point> location{lhs.locate(rotated)};
           if (location) {
             std::cout << "Scanner " << i << " located " << j << " at " << location->to_string() << std::endl;
