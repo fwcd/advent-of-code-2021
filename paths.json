@@ -74,5 +74,9 @@
   {
     "lang": "clike",
     "path": "day19/src/day19.cpp"
+  },
+  {
+    "lang": "ruby",
+    "path": "day20/src/day20.rb"
   }
 ]
