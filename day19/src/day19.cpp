@@ -238,6 +238,7 @@ void collect_points(
 int main() {
   std::vector<Scanner> scanners;
 
+  // Parse the input
   {
     std::ifstream file{"resources/demo.txt"};
     Scanner scanner;
@@ -254,20 +255,19 @@ int main() {
     neighbor_locations.push_back({});
   }
 
+  // Figure out rotations & offsets (the heavy lifting)
   for (int i = 0; i < scanners.size(); i++) {
     for (int j = i + 1; j < scanners.size(); j++) {
-      if (i != j) {
-        Scanner lhs{scanners[i]};
-        Scanner rhs{scanners[j]};
-        for (Rotation rotation : all_rotations) {
-          Scanner rotated{rhs.apply(rotation)};
-          std::optional<Point> location{lhs.locate(rotated)};
-          if (location) {
-            std::cout << "Scanner " << i << " located " << j << " at " << location->to_string() << std::endl;
-            neighbor_locations[i].insert({j, {*location, rotation}});
-            neighbor_locations[j].insert({i, {-*location, rotation.inverse()}});
-            break;
-          }
+      Scanner lhs{scanners[i]};
+      Scanner rhs{scanners[j]};
+      for (Rotation rotation : all_rotations) {
+        Scanner rotated{rhs.apply(rotation)};
+        std::optional<Point> location{lhs.locate(rotated)};
+        if (location) {
+          std::cout << "Scanner " << i << " located " << j << " with offset " << location->to_string() << std::endl;
+          neighbor_locations[i].insert({j, {*location, rotation}});
+          neighbor_locations[j].insert({i, {-*location, rotation.inverse()}});
+          break;
         }
       }
     }
