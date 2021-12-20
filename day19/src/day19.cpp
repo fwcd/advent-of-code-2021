@@ -2,11 +2,59 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <stdexcept>
 #include <functional>
 #include <unordered_set>
 #include <unordered_map>
 #include <optional>
 #include <vector>
+
+struct Rotation {
+  int ix;
+  int iy;
+  int iz;
+  int flip_x;
+  int flip_y;
+  int flip_z;
+
+  Rotation(int ix, int iy, int iz, int flip_x, int flip_y, int flip_z)
+    : ix(ix), iy(iy), iz(iz), flip_x(flip_x), flip_y(flip_y), flip_z(flip_z) {}
+
+  int operator[](int index) const {
+    switch (index) {
+    case 0: return ix;
+    case 1: return iy;
+    case 2: return iz;
+    default: throw std::invalid_argument("Index out of bounds");
+    }
+  }
+
+  int flip(int index) const {
+    switch (index) {
+    case 0: return flip_x;
+    case 1: return flip_y;
+    case 2: return flip_z;
+    default: throw std::invalid_argument("Index out of bounds");
+    }
+  }
+
+  Rotation compose(Rotation lhs) const {
+    return {lhs[ix], lhs[iy], lhs[iz], flip_x * lhs.flip(ix), flip_y * lhs.flip(iy), flip_z * lhs.flip(iz)};
+  }
+
+  // Rotations as in https://stackoverflow.com/a/16467849
+
+  std::string to_string() const {
+    std::stringstream ss;
+    ss << "<" << ix << ", " << iy << ", " << iz << ">";
+    return ss.str();
+  }
+};
+
+const Rotation ID{0, 1, 2, 1, 1, 1};
+const Rotation ROLL{0, 2, 1, 1, 1, -1};
+const Rotation TURN{1, 0, 2, -1, 1, 1};
+const Rotation TURN_INV{1, 0, 2, 1, -1, 1};
 
 struct Point {
   int x;
@@ -15,21 +63,26 @@ struct Point {
 
   Point(int x, int y, int z) : x(x), y(y), z(z) {}
 
-  Point operator+(Point rhs) const { return Point(x + rhs.x, y + rhs.y, z + rhs.z); }
+  Point operator+(Point rhs) const { return {x + rhs.x, y + rhs.y, z + rhs.z}; }
 
-  Point operator-() const { return Point(-x, -y, -z); }
+  Point operator-() const { return {-x, -y, -z}; }
 
-  Point operator-(Point rhs) const { return Point(x - rhs.x, y - rhs.y, z - rhs.z); }
+  Point operator-(Point rhs) const { return {x - rhs.x, y - rhs.y, z - rhs.z}; }
 
   bool operator==(Point rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
 
-  // Rotations as in https://stackoverflow.com/a/16467849
+  int operator[](int index) const {
+    switch (index) {
+    case 0: return x;
+    case 1: return y;
+    case 2: return z;
+    default: throw std::invalid_argument("Index out of bounds");
+    }
+  }
 
-  Point roll() const { return Point(x, z, -y); }
-
-  Point turn() const { return Point(-y, x, z); }
-
-  Point turn_inv() const { return Point(y, -x, z); }
+  Point apply(Rotation rotation) const {
+    return {(*this)[rotation.ix], (*this)[rotation.iy], (*this)[rotation.iz]};
+  }
 
   std::string to_string() const {
     std::stringstream ss;
@@ -54,15 +107,15 @@ struct Scanner {
     std::vector<Point> rotated{points.begin(), points.end()};
     for (int r = 0; r < 6; r++) {
       for (Point &point : rotated) {
-        point = point.roll();
+        point = point.apply(ROLL);
       }
       rotations.push_back({{rotated.begin(), rotated.end()}});
       for (int t = 0; t < 3; t++) {
         for (Point &point : rotated) {
           if (r % 2 == 0) {
-            point = point.turn();
+            point = point.apply(TURN);
           } else {
-            point = point.turn_inv();
+            point = point.apply(TURN_INV);
           }
         }
         rotations.push_back({{rotated.begin(), rotated.end()}});
@@ -139,7 +192,7 @@ Point parse_point(std::string line) {
   int x{parse_component(line, i)};
   int y{parse_component(line, i)};
   int z{parse_component(line, i)};
-  return Point(x, y, z);
+  return {x, y, z};
 }
 
 bool parse_scanner(std::ifstream &file, Scanner &scanner) {
@@ -179,7 +232,7 @@ int main() {
   std::vector<Scanner> scanners;
 
   {
-    std::ifstream file{"resources/input.txt"};
+    std::ifstream file{"resources/demo.txt"};
     Scanner scanner;
     while (parse_scanner(file, scanner)) {
       scanners.push_back(scanner);
@@ -219,7 +272,7 @@ int main() {
   // Assemble neighbor_locations graph to actual points
   Scanner combined;
   std::unordered_set<int> visited;
-  collect_points(0, Point(0, 0, 0), scanners, neighbor_locations, visited, combined);
+  collect_points(0, {0, 0, 0}, scanners, neighbor_locations, visited, combined);
   std::cout << "Part 1: " << combined.points.size() << std::endl;
 
   return 0;
