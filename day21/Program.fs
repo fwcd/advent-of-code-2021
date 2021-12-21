@@ -13,6 +13,11 @@ type Part1State =
   { state: State
     die: int }
 
+type Part2State =
+  { states: Map<State, int> // maps state to count
+    p1Won: int
+    p2Won: int }
+
 let rec iterateUntil p f x =
   if p x then x
   else iterateUntil p f (f x)
