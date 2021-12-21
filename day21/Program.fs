@@ -37,7 +37,7 @@ let step s =
 
 let threshold = 1000
 let play = iterateUntil (fun s -> (max s.p1.score s.p2.score) >= threshold) step
-let loser s = if s.p1.score >= 1000 then s.p2 else s.p1
+let loser s = if s.p1.score >= threshold then s.p2 else s.p1
 
 // Main program
 
