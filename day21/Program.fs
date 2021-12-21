@@ -20,8 +20,14 @@ let step s =
             score = s.p2.score + pos2' }
     die = die' }
 
+let rec iterate n f x =
+  if n = 0 then x
+  elif n > 0 then f (iterate (n - 1) f x)
+  else failwith "Invalid n"
+
 let input = File.ReadAllText("resources/demo.txt").Split("\n")
               |> Seq.filter (fun l -> String.length l > 0)
               |> Seq.map (fun l -> (l.Split(":")[1]).Trim() |> int)
+              |> Seq.toList
 
-printfn "%s" (input |> Seq.map string |> String.concat "+")
+printfn "%d" (iterate 10 (fun x -> x + 1) input[0])
