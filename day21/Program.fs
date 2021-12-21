@@ -14,9 +14,9 @@ type Part1State =
     die: int }
 
 type Part2State =
-  { states: Map<State, int> // maps state to count
-    p1Won: int              // number of games won by player 1
-    p2Won: int }            // number of games won by player 2
+  { states: Map<State, uint64> // maps state to count
+    p1Won: uint64              // number of games won by player 1
+    p2Won: uint64 }            // number of games won by player 2
 
 let rec iterateUntil (p: 'a -> bool) (f: 'a -> 'a) (x: 'a) =
   if p x then x
@@ -48,12 +48,12 @@ let part1Play = iterateUntil (fun s -> part1Won s.state.p1 || part1Won s.state.p
 let part1Loser s = if part1Won s.p1 then s.p2 else s.p1
 
 let part2Won p = p.score >= 21
-let part2WonStates pf = Map.fold (fun x s c -> x + (if part2Won (pf s) then c else 0)) 0
+let part2WonStates pf = Map.fold (fun x s c -> x + (if part2Won (pf s) then c else 0UL)) 0UL
 let part2RollDie sts die =
   Map.keys sts
-    |> Seq.fold (fun sts' s -> changeWithDefault (step die s) (fun x -> x + (defaultArg (Map.tryFind s sts') 0)) 0 sts') sts
+    |> Seq.fold (fun sts' s -> changeWithDefault (step die s) (fun x -> x + (defaultArg (Map.tryFind s sts') 0UL)) 0UL sts') sts
 let part2Step s =
-  let states' = seq { 0..2 } |> Seq.fold part2RollDie s.states
+  let states' = (seq { 0..2 }) |> Seq.fold part2RollDie s.states
   printf "%A\n" states'
   { states = Map.filter (fun s _ -> not (part2Won s.p1 || part2Won s.p2)) states'
     p1Won = s.p1Won + part2WonStates (fun s -> s.p1) states'
@@ -81,7 +81,7 @@ let part1 = (part1State.die - 1) * (part1Loser part1State.state).score
 
 printfn "Part 1: %d" part1
 
-let part2State = part2Play { states = Map [(initialState, 1)]; p1Won = 0; p2Won = 0 }
+let part2State = part2Play { states = Map [(initialState, 1UL)]; p1Won = 0UL; p2Won = 0UL }
 let part2 = max part2State.p1Won part2State.p2Won
 
 printfn "Part 2: %d" part2
