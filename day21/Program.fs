@@ -15,8 +15,8 @@ type Part1State =
 
 type Part2State =
   { states: Map<State, int> // maps state to count
-    p1Won: int
-    p2Won: int }
+    p1Won: int              // number of games won by player 1
+    p2Won: int }            // number of games won by player 2
 
 let rec iterateUntil p f x =
   if p x then x
@@ -39,10 +39,14 @@ let step s die =
              score = s.p2.score + pos' }
       turn = turn' }
 
-let threshold = 1000
+let part1Threshold = 1000
 let part1Step s = { state = step s.state (3 * s.die + 3); die = s.die + 3 }
-let part1Play = iterateUntil (fun s -> (max s.state.p1.score s.state.p2.score) >= threshold) part1Step
-let loser s = if s.p1.score >= threshold then s.p2 else s.p1
+let part1Play = iterateUntil (fun s -> (max s.state.p1.score s.state.p2.score) >= part1Threshold) part1Step
+let part1Loser s = if s.p1.score >= part1Threshold then s.p2 else s.p1
+
+let part2Threshold = 21
+let part2Play s = s
+// TODO
 
 // Main program
 
@@ -60,6 +64,11 @@ let initialState =
     turn = true }
 
 let part1State = part1Play { state = initialState; die = 1 }
-let part1 = (part1State.die - 1) * (loser part1State.state).score
+let part1 = (part1State.die - 1) * (part1Loser part1State.state).score
 
 printfn "Part 1: %d" part1
+
+let part2State = part2Play { states = Map [(initialState, 1)]; p1Won = 0; p2Won = 0 }
+let part2 = max part2State.p1Won part2State.p2Won
+
+printfn "Part 2: %d" part2
