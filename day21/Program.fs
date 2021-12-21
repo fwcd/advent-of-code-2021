@@ -18,13 +18,16 @@ type Part2State =
     p1Won: int              // number of games won by player 1
     p2Won: int }            // number of games won by player 2
 
-let rec iterateUntil p f x =
+let rec iterateUntil (p: 'a -> bool) (f: 'a -> 'a) (x: 'a) =
   if p x then x
   else iterateUntil p f (f x)
 
+let changeWithDefault (k: 'k) (f: 'v -> 'v) (x: 'v) (m: Map<'k, 'v>) =
+  Map.add k (f (defaultArg (Map.tryFind k m) x)) m
+
 let chop x = ((x - 1) % 10) + 1
 let nextPos pos die = chop (pos + die)
-let step s die =
+let step die s =
   let turn' = not s.turn
   if s.turn then
     let pos' = nextPos s.p1.pos die
@@ -39,14 +42,21 @@ let step s die =
              score = s.p2.score + pos' }
       turn = turn' }
 
-let part1Threshold = 1000
-let part1Step s = { state = step s.state (3 * s.die + 3); die = s.die + 3 }
-let part1Play = iterateUntil (fun s -> (max s.state.p1.score s.state.p2.score) >= part1Threshold) part1Step
-let part1Loser s = if s.p1.score >= part1Threshold then s.p2 else s.p1
+let part1Won p = p.score >= 1000
+let part1Step s = { state = step (3 * s.die + 3) s.state; die = s.die + 3 }
+let part1Play = iterateUntil (fun s -> part1Won s.state.p1 || part1Won s.state.p2) part1Step
+let part1Loser s = if part1Won s.p1 then s.p2 else s.p1
 
-let part2Threshold = 21
-let part2Play s = s
-// TODO
+let part2Won p = p.score >= 21
+let part2WonStates pf = Map.fold (fun x s c -> x + (if part2Won (pf s) then c else 0)) 0
+let part2RollDie sts die = Map.keys sts |> Seq.fold (fun sts' s -> changeWithDefault (step die s) (fun x -> x + 1) 0 sts') sts
+let part2Step s =
+  let states' = seq { 0..2 } |> Seq.fold part2RollDie s.states
+  { states = Map.filter (fun s _ -> not (part2Won s.p1 || part2Won s.p2)) states'
+    p1Won = s.p1Won + part2WonStates (fun s -> s.p1) states'
+    p2Won = s.p2Won + part2WonStates (fun s -> s.p2) states'
+  }
+let part2Play = iterateUntil (fun s -> Map.isEmpty s.states) part2Step
 
 // Main program
 
