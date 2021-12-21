@@ -41,7 +41,7 @@ let loser s = if s.p1.score >= 1000 then s.p2 else s.p1
 
 // Main program
 
-let input = File.ReadAllText("resources/demo.txt").Split("\n")
+let input = File.ReadAllText("resources/input.txt").Split("\n")
               |> Seq.filter (fun l -> String.length l > 0)
               |> Seq.map (fun l -> (l.Split(":")[1]).Trim() |> int)
               |> Seq.toList
