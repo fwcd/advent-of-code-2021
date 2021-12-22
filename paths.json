@@ -82,5 +82,9 @@
   {
     "lang": "fsharp",
     "path": "day21/Program.fs"
+  },
+  {
+    "lang": "javascript",
+    "path": "day22/src/index.js"
   }
 ]
