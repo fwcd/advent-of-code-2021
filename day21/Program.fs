@@ -22,6 +22,8 @@ let rec iterateUntil (p: 'a -> bool) (f: 'a -> 'a) (x: 'a) =
   if p x then x
   else iterateUntil p f (f x)
 
+let forFold (xs: seq<'a>) (f: 'a -> 'b -> 'b) (b: 'b) = Seq.fold (fun acc x -> f x acc) b xs
+
 let chop x = ((x - 1) % 10) + 1
 let nextPos pos die = chop (pos + die)
 let step die s =
@@ -46,15 +48,14 @@ let part1Loser s = if part1Won s.p1 then s.p2 else s.p1
 
 let part2Won p = p.score >= 21
 let part2WonStates pf = Map.fold (fun x s c -> x + (if part2Won (pf s) then c else 0UL)) 0UL
-let part2RollDie sts (s, c, die) =
+let part2RollDie sts (s, c) =
   sts
-    |> Map.change s (fun x -> Some ((defaultArg x 0UL) - c) |> Option.filter (fun x -> x > 0UL))
-    |> Map.change (step die s) (fun x -> Some ((defaultArg x 0UL) + c))
+    |> Map.change s (fun x -> Some ((Option.get x) - c) |> Option.filter (fun x -> x > 0UL))
+    |> forFold (seq { 1..3 }) (fun die -> Map.change (step die s) (fun x -> Some ((defaultArg x 0UL) + c)))
 let part2Step ps =
   let states' =
     ps.states
       |> Map.toSeq
-      |> Seq.collect (fun (s, c) -> (seq { 1..3 }) |> Seq.map (fun die -> (s, c, die)))
       |> Seq.fold part2RollDie ps.states
   { states = Map.filter (fun s _ -> not (part2Won s.p1 || part2Won s.p2)) states'
     p1Won = ps.p1Won + part2WonStates (fun s -> s.p1) states'
