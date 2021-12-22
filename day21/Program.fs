@@ -46,11 +46,13 @@ let part1Loser s = if part1Won s.p1 then s.p2 else s.p1
 
 let part2Won p = p.score >= 21
 let part2WonStates pf = Map.fold (fun x s c -> x + (if part2Won (pf s) then c else 0UL)) 0UL
+let part2Die = seq { 1..3 }
+let part2Rolls = part2Die |> Seq.collect (fun die1 -> part2Die |> Seq.collect (fun die2 -> part2Die |> Seq.map (fun die3 -> die1 + die2 + die3)))
 let part2Step ps =
   let states' =
     ps.states
       |> Map.toSeq
-      |> Seq.collect (fun (s, c) -> (seq { 1..3 }) |> Seq.map (fun die -> (step die ps.turn s, c)))
+      |> Seq.collect (fun (s, c) -> part2Rolls |> Seq.map (fun die -> (step die ps.turn s, c)))
       |> distToMap
   { states = Map.filter (fun s _ -> not (part2Won s.p1 || part2Won s.p2)) states'
     p1Won = ps.p1Won + part2WonStates (fun s -> s.p1) states'
