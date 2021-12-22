@@ -23,7 +23,7 @@ My solutions to the [Advent of Code 2021](https://adventofcode.com/2021), writte
 - [x] Day 19: C++
 - [x] Day 20: Ruby
 - [x] Day 21: F#
-- [ ] Day 22: JavaScript
+- [x] Day 22: JavaScript
 - [ ] Day 23
 - [ ] Day 24
 - [ ] Day 25
