@@ -17,22 +17,28 @@ function cuboidVolume(c) {
 }
 
 function intersectIntervals(iv1, iv2) {
-  if (iv1.from <= iv2.to && iv2.from <= iv1.to) {
-    return { from: Math.max(iv1.from, iv2.from), to: Math.min(iv1.to, iv2.to) };
-  } else {
-    return null;
-  }
+  const it = { from: Math.max(iv1.from, iv2.from), to: Math.min(iv1.to, iv2.to) };
+  return it.from <= it.to ? it : null;
 }
 
 function intersectCuboids(iv1, iv2) {
   const x = intersectIntervals(iv1.x, iv2.x);
   const y = intersectIntervals(iv1.y, iv2.y);
   const z = intersectIntervals(iv1.z, iv2.z);
-  if (x && y && z) {
-    return { x, y, z };
-  } else {
-    return null;
-  }
+  return x && y && z ? { x, y, z } : null;
+}
+
+function encodeCuboid(c) {
+  return JSON.stringify([c.x.from, c.x.to, c.y.from, c.y.to, c.z.from, c.z.to]);
+}
+
+function decodeCuboid(raw) {
+  const [x1, x2, y1, y2, z1, z2] = JSON.parse(raw);
+  return {
+    x: { from: x1, to: x2 },
+    y: { from: y1, to: y2 },
+    z: { from: z1, to: z2 }
+  };
 }
 
 async function main() {
@@ -44,27 +50,36 @@ async function main() {
     .map((([state, x1, x2, y1, y2, z1, z2]) => ({
       on: state === 'on',
       cuboid: {
-        x: { from: x1, to: x2 },
-        y: { from: y1, to: y2 },
-        z: { from: z1, to: z2 }
+        x: { from: parseInt(x1), to: parseInt(x2) },
+        y: { from: parseInt(y1), to: parseInt(y2) },
+        z: { from: parseInt(z1), to: parseInt(z2) }
       }
     })));
-  let cuboids = [];
+  
+  // Use clever signed volume trick by Boojam, instead of computing
+  // cuboid slices just add the intersection with negative volume.
 
+  let cuboidCounts = {};
   for (const inst of instructions) {
-    const existing = cuboids.length;
-    for (let i = 0; i < existing; i++) {
-      const it = intersectCuboids(inst.cuboid, cuboids[i]);
+    const delta = [];
+    for (const otherRaw in cuboidCounts) {
+      const it = intersectCuboids(inst.cuboid, decodeCuboid(otherRaw));
       if (it) {
-        cuboids.push({ ...it, sign: -1 });
+        delta.push({ cuboid: it, sign: -cuboidCounts[otherRaw] });
       }
     }
     if (inst.on) {
-      cuboids.push({ ...inst.cuboid, sign: 1 });
+      delta.push({ cuboid: inst.cuboid, sign: 1 });
+    }
+    for (const volumeCuboid of delta) {
+      const raw = encodeCuboid(volumeCuboid.cuboid);
+      cuboidCounts[raw] = (raw in cuboidCounts ? cuboidCounts[raw] : 0) + volumeCuboid.sign;
     }
   }
 
-  const part2 = cuboids.reduce((sum, c) => sum + cuboidVolume(c) * c.sign, 0);
+  const part2 = Object.keys(cuboidCounts)
+    .map(raw => [decodeCuboid(raw), cuboidCounts[raw]])
+    .reduce((sum, [c, s]) => sum + cuboidVolume(c) * s, 0);
   console.log(`Part 2: ${part2}`);
 
   let part1 = 0;
