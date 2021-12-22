@@ -19,12 +19,22 @@ type Part2State =
     p2Won: uint64              // number of games won by player 2
     turn: bool }
 
+// --- Utilities ---
+
+// Iterates a function until the given predicate is satisfied
 let rec iterateUntil (p: 'a -> bool) (f: 'a -> 'a) (x: 'a) =
   if p x then x
   else iterateUntil p f (f x)
 
+// Collects a distribution-esque sequence into a map by summing values
 let distToMap (xs: seq<'a * uint64>) =
   xs |> Seq.fold (fun m (k, v) -> Map.change k (fun v' -> Some (v + (defaultArg v' 0UL))) m) Map.empty
+
+// Cartesian product
+let (.*) (xs: seq<'a>) (ys: seq<'b>) =
+  xs |> Seq.collect (fun x -> ys |> Seq.map (fun y -> (x, y)))
+
+// --- Game logic ---
 
 let chop x = ((x - 1) % 10) + 1
 let stepPlayer die p =
@@ -47,7 +57,7 @@ let part1Loser s = if part1Won s.p1 then s.p2 else s.p1
 let part2Won p = p.score >= 21
 let part2WonStates pf = Map.fold (fun x s c -> x + (if part2Won (pf s) then c else 0UL)) 0UL
 let part2Die = seq { 1..3 }
-let part2Rolls = part2Die |> Seq.collect (fun die1 -> part2Die |> Seq.collect (fun die2 -> part2Die |> Seq.map (fun die3 -> die1 + die2 + die3)))
+let part2Rolls = part2Die .* part2Die .* part2Die |> Seq.map (fun ((x, y), z) -> x + y + z)
 let part2Step ps =
   let states' =
     ps.states
@@ -61,7 +71,7 @@ let part2Step ps =
   }
 let part2Play = iterateUntil (fun s -> Map.isEmpty s.states) part2Step
 
-// Main program
+// --- Main program ---
 
 let input =
   File.ReadAllText("resources/input.txt").Split("\n")
