@@ -64,7 +64,7 @@ let part2Play = iterateUntil (fun s -> Map.isEmpty s.states) part2Step
 // Main program
 
 let input =
-  File.ReadAllText("resources/demo.txt").Split("\n")
+  File.ReadAllText("resources/input.txt").Split("\n")
     |> Seq.filter (fun l -> String.length l > 0)
     |> Seq.map (fun l -> (l.Split(":")[1]).Trim() |> int)
     |> Seq.toList
