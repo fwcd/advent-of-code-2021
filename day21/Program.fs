@@ -22,9 +22,8 @@ let rec iterateUntil (p: 'a -> bool) (f: 'a -> 'a) (x: 'a) =
   if p x then x
   else iterateUntil p f (f x)
 
-let forFold (xs: seq<'a>) (f: 'a -> 'b -> 'b) (b: 'b) = Seq.fold (fun acc x -> f x acc) b xs
-
-let distToMap (xs: seq<'a * uint64>) = forFold xs (fun (k, v) -> Map.change k (fun v' -> Some (v + (defaultArg v' 0UL)))) Map.empty
+let distToMap (xs: seq<'a * uint64>) =
+  xs |> Seq.fold (fun m (k, v) -> Map.change k (fun v' -> Some (v + (defaultArg v' 0UL))) m) Map.empty
 
 let chop x = ((x - 1) % 10) + 1
 let nextPos pos die = chop (pos + die)
