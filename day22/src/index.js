@@ -78,7 +78,7 @@ function computeTotalVolume(instructions, boundingBox) {
 }
 
 async function main() {
-  const input = await fs.promises.readFile('resources/demo-large.txt', { encoding: 'utf-8' });
+  const input = await fs.promises.readFile('resources/input.txt', { encoding: 'utf-8' });
   const instructions = input
     .split('\n')
     .filter(l => l.length > 0)
