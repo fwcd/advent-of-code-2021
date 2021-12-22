@@ -22,7 +22,7 @@ My solutions to the [Advent of Code 2021](https://adventofcode.com/2021), writte
 - [x] Day 18: Curry
 - [x] Day 19: C++
 - [x] Day 20: Ruby
-- [ ] Day 21: F#
+- [x] Day 21: F#
 - [ ] Day 22
 - [ ] Day 23
 - [ ] Day 24
