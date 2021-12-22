@@ -108,12 +108,12 @@ function combineIntoCuboids(cs, c2, additive) {
         for (let j = i + 1; j < newCS.length; j++) {
           const lhs = newCS[i];
           const rhs = newCS[j];
-          if (intersectCuboids(lhs, rhs)) {
-            newCS.splice(i);
-            newCS.splice(j);
-            newCS.push(...combineCuboids(lhs, rhs, true));
-            continue merger;
-          }
+          // if (intersectCuboids(lhs, rhs)) {
+          //   newCS.splice(i);
+          //   newCS.splice(j);
+          //   newCS.push(...combineCuboids(lhs, rhs, true));
+          //   continue merger;
+          // }
         }
       }
       break;
@@ -125,7 +125,7 @@ function combineIntoCuboids(cs, c2, additive) {
 }
 
 async function main() {
-  const input = await fs.promises.readFile('resources/input.txt', { encoding: 'utf-8' });
+  const input = await fs.promises.readFile('resources/demo.txt', { encoding: 'utf-8' });
   const instructions = input
     .split('\n')
     .filter(l => l.length > 0)
