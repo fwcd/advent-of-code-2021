@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use std::{fs, fmt};
 use std::ops::{Index, IndexMut};
 
@@ -86,36 +87,42 @@ impl fmt::Display for Grid {
     }
 }
 
-fn parse_block(raw: char) -> Block {
-    match raw {
-        '.' => Block::Space,
-        'A' => Block::Ampiphod(Ampiphod::A),
-        'B' => Block::Ampiphod(Ampiphod::B),
-        'C' => Block::Ampiphod(Ampiphod::C),
-        'D' => Block::Ampiphod(Ampiphod::D),
-        _ => Block::Wall,
+impl From<char> for Block {
+    fn from(raw: char) -> Block {
+        match raw {
+            '.' => Block::Space,
+            'A' => Block::Ampiphod(Ampiphod::A),
+            'B' => Block::Ampiphod(Ampiphod::B),
+            'C' => Block::Ampiphod(Ampiphod::C),
+            'D' => Block::Ampiphod(Ampiphod::D),
+            _ => Block::Wall,
+        }
     }
 }
 
-fn parse_grid(raw: &str) -> Grid {
-    let mut grid = Grid { elements: Vec::new(), width: 0, height: 0 };
-    for line in raw.lines() {
-        if grid.width == 0 {
-            grid.width = line.len();
+impl FromStr for Grid {
+    type Err = ();
+
+    fn from_str(raw: &str) -> Result<Grid, ()> {
+        let mut grid = Grid { elements: Vec::new(), width: 0, height: 0 };
+        for line in raw.lines() {
+            if grid.width == 0 {
+                grid.width = line.len();
+            }
+            for c in line.chars() {
+                grid.elements.push(Block::from(c));
+            }
+            while grid.elements.len() % grid.width != 0 {
+                grid.elements.push(Block::Wall);
+            }
+            grid.height += 1;
         }
-        for c in line.chars() {
-            grid.elements.push(parse_block(c));
-        }
-        while grid.elements.len() % grid.width != 0 {
-            grid.elements.push(Block::Wall);
-        }
-        grid.height += 1;
+        Ok(grid)
     }
-    grid
 }
 
 fn main() {
     let raw_input = fs::read_to_string("resources/demo.txt").expect("No input");
-    let grid = parse_grid(&raw_input);
+    let grid = Grid::from_str(&raw_input).expect("Invalid grid");
     println!("{}", grid);
 }
