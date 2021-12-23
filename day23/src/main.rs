@@ -1,17 +1,56 @@
 use std::{fs, fmt};
+use std::ops::{Index, IndexMut};
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 enum Ampiphod {
     A, B, C, D
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 enum Block {
     Wall, Space, Ampiphod(Ampiphod)
 }
 
+#[derive(Clone, PartialEq, Eq, Hash)]
 struct Grid {
     elements: Vec<Block>,
     width: usize,
-    height: usize
+    height: usize,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+struct Pos {
+    y: usize,
+    x: usize,
+}
+
+impl Pos {
+    fn new(y: usize, x: usize) -> Self {
+        Self { y, x }
+    }
+
+    fn neighbors(&self) -> [Pos; 4] {
+        [
+            Pos::new(self.y - 1, self.x),
+            Pos::new(self.y + 1, self.x),
+            Pos::new(self.y, self.x - 1),
+            Pos::new(self.y, self.x + 1),
+        ]
+    }
+}
+
+impl Index<Pos> for Grid {
+    type Output = Block;
+
+    fn index(&self, pos: Pos) -> &Block {
+        &self.elements[pos.y * self.width + pos.x]
+    }
+}
+
+impl IndexMut<Pos> for Grid {
+    fn index_mut(&mut self, pos: Pos) -> &mut Block {
+        &mut self.elements[pos.y * self.width + pos.x]
+    }
 }
 
 impl fmt::Display for Ampiphod {
@@ -39,7 +78,7 @@ impl fmt::Display for Grid {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for y in 0..self.height {
             for x in 0..self.width {
-                write!(f, "{}", self.elements[y * self.width + x]);
+                write!(f, "{}", self[Pos::new(y, x)]);
             }
             writeln!(f)?;
         }
