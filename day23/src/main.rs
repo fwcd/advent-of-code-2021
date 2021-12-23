@@ -79,11 +79,17 @@ impl fmt::Display for Grid {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for y in 0..self.height {
             for x in 0..self.width {
-                write!(f, "{}", self[Pos::new(y, x)]);
+                write!(f, "{}", self[Pos::new(y, x)])?;
             }
             writeln!(f)?;
         }
         Ok(())
+    }
+}
+
+impl fmt::Display for Pos {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
     }
 }
 
