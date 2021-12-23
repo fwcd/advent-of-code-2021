@@ -86,5 +86,9 @@
   {
     "lang": "javascript",
     "path": "day22/src/index.js"
+  },
+  {
+    "lang": "rust",
+    "path": "day23/src/main.rs"
   }
 ]
