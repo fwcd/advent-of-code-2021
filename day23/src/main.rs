@@ -216,7 +216,6 @@ fn shortest_path(start: Board, target: Board) -> u64 {
     heap.push(Reverse(SearchState { state: State { board: start, energy: 0 }, cost_estimate: 0 }));
 
     while let Some(Reverse(current)) = heap.pop() {
-        println!("Energy: {}", current.state.energy);
         if current.state.board == target {
             return current.state.energy;
         }
