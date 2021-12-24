@@ -27,6 +27,10 @@ fn cost(amphipod: char) -> u64 {
     }
 }
 
+fn move_cost(i: usize, x: usize, y: usize, amphipod: char) -> u64 {
+    (1 + y + abs_diff(2 * x + 2, i)) as u64 * cost(amphipod)
+}
+
 impl Board {
     fn empty() -> Self {
         Self { hallway: [None; 11], rooms: [[None; 2]; 4] }
@@ -52,8 +56,8 @@ impl Board {
             .filter_map(move |(y, o)| if o.is_none() { Some((x, y)) } else { None })
     }
 
-    fn enterable_hallway_spots(self, source_x: usize) -> impl Iterator<Item=usize> {
-        (0..self.hallway.len()).filter(move |&x| x != source_x)
+    fn enterable_hallway_spots(self, x: usize) -> impl Iterator<Item=usize> {
+        (0..self.hallway.len()).filter(move |&i| i != 2 * x + 2)
     }
 
     fn leavable_hallway_spots(self) -> impl Iterator<Item=(usize, char)> {
@@ -67,7 +71,7 @@ impl State {
             .flat_map(move |(x, y, a)| self.board.enterable_hallway_spots(x).map(move |i| {
                 let mut child = self;
                 child.board.hallway[i] = child.board.rooms[x][y].take();
-                child.energy += (1 + y + abs_diff(x, i)) as u64 * cost(a);
+                child.energy += move_cost(i, x, y, a);
                 child
             }))
     }
@@ -77,7 +81,7 @@ impl State {
             .flat_map(move |(i, a)| self.board.enterable_rooms(a).map(move |(x, y)| {
                 let mut child = self;
                 child.board.rooms[x][y] = child.board.hallway[i].take();
-                child.energy += (1 + y + abs_diff(x, i)) as u64 * cost(a);
+                child.energy += move_cost(i, x, y, a);
                 child
             }))
     }
@@ -105,5 +109,11 @@ impl FromStr for Board {
 fn main() {
     let raw = fs::read_to_string("resources/demo.txt").expect("No input file");
     let start = Board::from_str(&raw).expect("Could not parse board");
+
+    // DEBUG
     println!("{:?}", start);
+    println!("Next:");
+    for next in (State { board: start, energy: 0 }.next_states().into_iter()) {
+        println!("(energy {}) {:?}", next.energy, next.board);
+    }
 }
