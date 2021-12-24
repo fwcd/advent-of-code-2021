@@ -76,10 +76,15 @@ impl Board {
             .map(move |(y, _)| (x, y))
     }
 
+    fn hallway_free_in(self, i1: usize, i2: usize) -> bool {
+        (i1.min(i2)..=i1.max(i2))
+            .all(|i| self.hallway[i].is_none())
+    }
+
     fn enterable_hallway_spots(self, x: usize) -> impl Iterator<Item=usize> {
         self.hallway.into_iter()
             .enumerate()
-            .filter_map(move |(i, o)| if i != x_to_i(x) && o.is_none() { Some(i) } else { None })
+            .filter_map(move |(i, _)| if i != x_to_i(x) && self.hallway_free_in(i, x_to_i(x)) { Some(i) } else { None })
     }
 
     fn leavable_hallway_spots(self) -> impl Iterator<Item=(usize, char)> {
