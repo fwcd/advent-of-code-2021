@@ -227,16 +227,20 @@ fn shortest_path<const N: usize>(start: Board<N>, target: Board<N>) -> u64 {
     let mut heap = BinaryHeap::<Reverse<SearchState<N>>>::new();
     let mut visited = HashSet::new();
     let mut previous = HashMap::<Board<N>, Board<N>>::new();
+    let mut energies = HashMap::<Board<N>, u64>::new();
 
     heap.push(Reverse(SearchState { state: State { board: start, energy: 0 }, cost_estimate: 0 }));
 
     while let Some(Reverse(current)) = heap.pop() {
         visited.insert(current.state.board);
+        energies.insert(current.state.board, current.state.energy);
         if current.state.board == target {
             println!("Searched {} nodes", visited.len());
             let mut current_board = current.state.board;
+            println!("Energy: {}", energies[&current_board]);
             println!("{}", current_board);
             while let Some(next_board) = previous.get(&current_board) {
+                println!("Energy: {}", energies[next_board]);
                 println!("{}", next_board);
                 current_board = *next_board;
             }
