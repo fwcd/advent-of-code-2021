@@ -67,10 +67,10 @@ impl Board {
             .filter_map(|(x, r)| r.into_iter().enumerate().find_map(|(y, o)| o.map(|a| (x, y, a))))
     }
 
-    fn enterable_rooms(self, amphipod: char) -> impl Iterator<Item=(usize, usize)> {
+    fn enterable_rooms(self, i: usize, amphipod: char) -> impl Iterator<Item=(usize, usize)> {
         let x = target_x(amphipod);
         self.rooms[x].into_iter()
-            .filter(move |_| self.is_targeted_room(x))
+            .filter(move |_| self.is_targeted_room(x) && self.hallway_free_in(i + (x_to_i(x) as i64 - i as i64).signum() as usize, x_to_i(x)))
             .enumerate()
             .filter(move |(_, o)| o.is_none())
             .last()
@@ -144,7 +144,7 @@ impl State {
 
     fn room_enters(self) -> impl Iterator<Item=State> {
         self.board.leavable_hallway_spots()
-            .flat_map(move |(i, a)| self.board.enterable_rooms(a).map(move |(x, y)| {
+            .flat_map(move |(i, a)| self.board.enterable_rooms(i, a).map(move |(x, y)| {
                 let mut child = self;
                 child.board.rooms[x][y] = child.board.hallway[i].take();
                 child.energy += move_cost(i, x, y, a);
