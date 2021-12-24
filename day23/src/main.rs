@@ -4,14 +4,14 @@ use std::str::FromStr;
 use std::{fs, fmt};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-struct Board {
+struct Board<const N: usize> {
     hallway: [Option<char>; 11],
-    rooms: [[Option<char>; 2]; 4],
+    rooms: [[Option<char>; N]; 4],
 }
 
 #[derive(Debug, Copy, Clone)]
-struct State {
-    board: Board,
+struct State<const N: usize> {
+    board: Board<N>,
     energy: u64,
 }
 
@@ -45,15 +45,15 @@ fn move_cost(i: usize, x: usize, y: usize, amphipod: char) -> u64 {
     (1 + y + abs_diff(x_to_i(x), i)) as u64 * cost(amphipod)
 }
 
-impl Board {
+impl<const N: usize> Board<N> {
     fn empty() -> Self {
-        Self { hallway: [None; 11], rooms: [[None; 2]; 4] }
+        Self { hallway: [None; 11], rooms: [[None; N]; 4] }
     }
 
     fn target() -> Self {
         Self {
             hallway: [None; 11],
-            rooms: [[Some('A'); 2], [Some('B'); 2], [Some('C'); 2], [Some('D'); 2]],
+            rooms: [[Some('A'); N], [Some('B'); N], [Some('C'); N], [Some('D'); N]],
         }
     }
 
@@ -98,7 +98,7 @@ impl Board {
     }
 
     fn is_completed_room(self, x: usize) -> bool {
-        self.rooms[x] == [Some(target_amphipod(x)); 2]
+        self.rooms[x] == [Some(target_amphipod(x)); N]
     }
 
     // Estimate distances for A* search
@@ -131,8 +131,8 @@ impl Board {
     }
 }
 
-impl State {
-    fn room_leaves(self) -> impl Iterator<Item=State> {
+impl<const N: usize> State<N> {
+    fn room_leaves(self) -> impl Iterator<Item=State<N>> {
         self.board.leavable_rooms()
             .flat_map(move |(x, y, a)| self.board.enterable_hallway_spots(x).map(move |i| {
                 let mut child = self;
@@ -142,7 +142,7 @@ impl State {
             }))
     }
 
-    fn room_enters(self) -> impl Iterator<Item=State> {
+    fn room_enters(self) -> impl Iterator<Item=State<N>> {
         self.board.leavable_hallway_spots()
             .flat_map(move |(i, a)| self.board.enterable_rooms(i, a).map(move |(x, y)| {
                 let mut child = self;
@@ -152,19 +152,19 @@ impl State {
             }))
     }
 
-    fn next_states(self) -> Vec<State> {
+    fn next_states(self) -> Vec<State<N>> {
         self.room_leaves().chain(self.room_enters()).collect()
     }
 }
 
-impl fmt::Display for Board {
+impl<const N: usize> fmt::Display for Board<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let empty = '.';
         for h in self.hallway.into_iter() {
             write!(f, "{}", h.unwrap_or(empty))?;
         }
         writeln!(f)?;
-        for y in 0..self.rooms[0].len() {
+        for y in 0..N {
             write!(f, " ")?;
             for x in 0..self.rooms.len() {
                 write!(f, " ")?;
@@ -176,7 +176,7 @@ impl fmt::Display for Board {
     }
 }
 
-impl FromStr for Board {
+impl<const N: usize> FromStr for Board<N> {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, ()> {
@@ -187,7 +187,7 @@ impl FromStr for Board {
             board.hallway[i] = Some(lines[1].as_bytes()[i + 1] as char).filter(|&a| a != empty);
         }
         for x in 0..4 {
-            for y in 0..2 {
+            for y in 0..N {
                 board.rooms[x][y] = Some(lines[2 + y].as_bytes()[3 + 2 * x] as char).filter(|&a| a != empty);
             }
         }
@@ -196,34 +196,34 @@ impl FromStr for Board {
 }
 
 #[derive(Debug, Copy, Clone)]
-struct SearchState {
-    state: State,
+struct SearchState<const N: usize> {
+    state: State<N>,
     cost_estimate: u64,
 }
 
-impl PartialEq for SearchState {
+impl<const N: usize> PartialEq for SearchState<N> {
     fn eq(&self, other: &Self) -> bool {
         self.cost_estimate == other.cost_estimate
     }
 }
 
-impl Eq for SearchState {}
+impl<const N: usize> Eq for SearchState<N> {}
 
-impl PartialOrd for SearchState {
+impl<const N: usize> PartialOrd for SearchState<N> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.cost_estimate.partial_cmp(&other.cost_estimate)
     }
 }
 
-impl Ord for SearchState {
+impl<const N: usize> Ord for SearchState<N> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.cost_estimate.cmp(&other.cost_estimate)
     }
 }
 
-fn shortest_path(start: Board, target: Board) -> u64 {
+fn shortest_path<const N: usize>(start: Board<N>, target: Board<N>) -> u64 {
     // Use A* search
-    let mut heap = BinaryHeap::<Reverse<SearchState>>::new();
+    let mut heap = BinaryHeap::<Reverse<SearchState<N>>>::new();
     heap.push(Reverse(SearchState { state: State { board: start, energy: 0 }, cost_estimate: 0 }));
 
     while let Some(Reverse(current)) = heap.pop() {
@@ -240,8 +240,8 @@ fn shortest_path(start: Board, target: Board) -> u64 {
 }
 
 fn main() {
-    let raw = fs::read_to_string("resources/input.txt").expect("No input file");
-    let start = Board::from_str(&raw).expect("Could not parse board");
+    let raw = fs::read_to_string("resources/demo.txt").expect("No input file");
+    let start = Board::<2>::from_str(&raw).expect("Could not parse board");
 
     let part1 = shortest_path(start, Board::target());
     println!("Part 1: {}", part1);
