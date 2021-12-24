@@ -240,7 +240,7 @@ fn shortest_path(start: Board, target: Board) -> u64 {
 }
 
 fn main() {
-    let raw = fs::read_to_string("resources/demo.txt").expect("No input file");
+    let raw = fs::read_to_string("resources/input.txt").expect("No input file");
     let start = Board::from_str(&raw).expect("Could not parse board");
 
     let part1 = shortest_path(start, Board::target());
