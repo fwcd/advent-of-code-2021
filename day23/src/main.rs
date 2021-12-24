@@ -1,5 +1,3 @@
-#![feature(int_abs_diff)]
-
 use std::str::FromStr;
 use std::fs;
 
@@ -13,6 +11,10 @@ struct Board {
 struct State {
     board: Board,
     energy: u64,
+}
+
+fn abs_diff(x: usize, y: usize) -> usize {
+    (y as i64 - x as i64).abs() as usize
 }
 
 fn cost(amphipod: char) -> u64 {
@@ -65,7 +67,7 @@ impl State {
             .flat_map(move |(x, y, a)| self.board.enterable_hallway_spots(x).map(move |i| {
                 let mut child = self;
                 child.board.hallway[i] = child.board.rooms[x][y].take();
-                child.energy += (1 + y + x.abs_diff(i)) as u64 * cost(a);
+                child.energy += (1 + y + abs_diff(x, i)) as u64 * cost(a);
                 child
             }))
     }
@@ -75,7 +77,7 @@ impl State {
             .flat_map(move |(i, a)| self.board.enterable_rooms(a).map(move |(x, y)| {
                 let mut child = self;
                 child.board.rooms[x][y] = child.board.hallway[i].take();
-                child.energy += (1 + y + x.abs_diff(i)) as u64 * cost(a);
+                child.energy += (1 + y + abs_diff(x, i)) as u64 * cost(a);
                 child
             }))
     }
