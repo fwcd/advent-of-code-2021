@@ -1,158 +1,42 @@
 use std::str::FromStr;
-use std::{fs, fmt, io};
-use std::ops::{Index, IndexMut};
+use std::fs;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-enum Amphipod {
-    A, B, C, D
+struct Board {
+    hallway: [Option<char>; 11],
+    rooms: [[Option<char>; 2]; 4],
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-enum Block {
-    Wall, Space, Amphipod(Amphipod)
-}
-
-#[derive(Clone, PartialEq, Eq, Hash)]
-struct Grid {
-    elements: Vec<Block>,
-    width: usize,
-    height: usize,
-}
-
-#[derive(Clone, PartialEq, Eq, Hash)]
-struct State {
-    grid: Grid,
-    energy: usize,
-}
-
-#[derive(Clone, PartialEq, Eq, Hash)]
-struct Game {
-    start: Grid,
-    target: Grid
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-struct Pos {
-    y: usize,
-    x: usize,
-}
-
-impl Pos {
-    fn new(y: usize, x: usize) -> Self {
-        Self { y, x }
+impl Board {
+    fn empty() -> Self {
+        Self { hallway: [None; 11], rooms: [[None; 2]; 4] }
     }
 
-    fn neighbors(&self) -> [Pos; 4] {
-        [
-            Pos::new(self.y - 1, self.x),
-            Pos::new(self.y + 1, self.x),
-            Pos::new(self.y, self.x - 1),
-            Pos::new(self.y, self.x + 1),
-        ]
-    }
-}
-
-impl Grid {
-    fn from_file(path: &str) -> Result<Self, String> {
-        let raw = fs::read_to_string(path).map_err(|e| format!("Could not read file: {:?}", e))?;
-        Ok(Grid::from_str(&raw).unwrap())
-    }
-}
-
-impl Game {
-
-}
-
-impl Index<Pos> for Grid {
-    type Output = Block;
-
-    fn index(&self, pos: Pos) -> &Block {
-        &self.elements[pos.y * self.width + pos.x]
-    }
-}
-
-impl IndexMut<Pos> for Grid {
-    fn index_mut(&mut self, pos: Pos) -> &mut Block {
-        &mut self.elements[pos.y * self.width + pos.x]
-    }
-}
-
-impl fmt::Display for Amphipod {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Amphipod::A => write!(f, "A"),
-            Amphipod::B => write!(f, "B"),
-            Amphipod::C => write!(f, "C"),
-            Amphipod::D => write!(f, "D"),
+    fn target() -> Self {
+        Self {
+            hallway: [None; 11],
+            rooms: [[Some('A'); 2], [Some('B'); 2], [Some('C'); 2], [Some('D'); 2]],
         }
     }
 }
 
-impl fmt::Display for Block {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Block::Space => write!(f, "."),
-            Block::Wall => write!(f, "#"),
-            Block::Amphipod(amp) => write!(f, "{}", amp)
-        }
-    }
-}
-
-impl fmt::Display for Grid {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for y in 0..self.height {
-            for x in 0..self.width {
-                write!(f, "{}", self[Pos::new(y, x)])?;
-            }
-            writeln!(f)?;
-        }
-        Ok(())
-    }
-}
-
-impl fmt::Display for Pos {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({}, {})", self.x, self.y)
-    }
-}
-
-impl From<char> for Block {
-    fn from(raw: char) -> Block {
-        match raw {
-            '.' => Block::Space,
-            'A' => Block::Amphipod(Amphipod::A),
-            'B' => Block::Amphipod(Amphipod::B),
-            'C' => Block::Amphipod(Amphipod::C),
-            'D' => Block::Amphipod(Amphipod::D),
-            _ => Block::Wall,
-        }
-    }
-}
-
-impl FromStr for Grid {
+impl FromStr for Board {
     type Err = ();
 
-    fn from_str(raw: &str) -> Result<Grid, ()> {
-        let mut grid = Grid { elements: Vec::new(), width: 0, height: 0 };
-        for line in raw.lines() {
-            if grid.width == 0 {
-                grid.width = line.len();
+    fn from_str(s: &str) -> Result<Self, ()> {
+        let mut board = Board::empty();
+        let lines: Vec<_> = s.lines().collect();
+        for x in 0..4 {
+            for y in 0..2 {
+                board.rooms[x][y] = Some(lines[2 + y].as_bytes()[3 + 2 * x] as char);
             }
-            for c in line.chars() {
-                grid.elements.push(Block::from(c));
-            }
-            while grid.elements.len() % grid.width != 0 {
-                grid.elements.push(Block::Wall);
-            }
-            grid.height += 1;
         }
-        Ok(grid)
+        Ok(board)
     }
 }
 
 fn main() {
-    let start = Grid::from_file("resources/demo.txt").unwrap();
-    let target = Grid::from_file("resources/target.txt").unwrap();
-    let game = Game { start, target };
-    println!("{}", game.target);
+    let raw = fs::read_to_string("resources/demo.txt").expect("No input file");
+    let start = Board::from_str(&raw).expect("Could not parse board");
+    println!("{:?}", start);
 }
