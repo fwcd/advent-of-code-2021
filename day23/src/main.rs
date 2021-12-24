@@ -71,7 +71,9 @@ impl Board {
     }
 
     fn enterable_hallway_spots(self, x: usize) -> impl Iterator<Item=usize> {
-        (0..self.hallway.len()).filter(move |&i| i != x_to_i(x))
+        self.hallway.into_iter()
+            .enumerate()
+            .filter_map(move |(i, o)| if i != x_to_i(x) && o.is_none() { Some(i) } else { None })
     }
 
     fn leavable_hallway_spots(self) -> impl Iterator<Item=(usize, char)> {
