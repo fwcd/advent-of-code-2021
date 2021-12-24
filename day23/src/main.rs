@@ -60,6 +60,7 @@ impl Board {
     fn leavable_rooms(self) -> impl Iterator<Item=(usize, usize, char)> {
         self.rooms.into_iter()
             .enumerate()
+            .filter(move |&(x, r)| r.into_iter().filter_map(|o| o).any(|a| a != target_amphipod(x)))
             .filter_map(|(x, r)| r.into_iter().enumerate().find_map(|(y, o)| o.map(|a| (x, y, a))))
     }
 
