@@ -1,4 +1,4 @@
-use std::collections::{BinaryHeap, HashMap};
+use std::collections::BinaryHeap;
 use std::cmp::{Reverse, Ordering};
 use std::str::FromStr;
 use std::{fs, fmt};
@@ -225,21 +225,13 @@ fn shortest_path(start: Board, target: Board) -> u64 {
     // Use A* search
     let mut heap = BinaryHeap::<Reverse<SearchState>>::new();
     heap.push(Reverse(SearchState { state: State { board: start, energy: 0 }, cost_estimate: 0 }));
-    let mut previous = HashMap::<Board, Board>::new();
 
     while let Some(Reverse(current)) = heap.pop() {
         if current.state.board == target {
-            let mut current_board = current.state.board;
-            println!("{}", current_board);
-            while let Some(next_board) = previous.get(&current_board) {
-                println!("{}", next_board);
-                current_board = *next_board;
-            }
             return current.state.energy;
         }
         for next in current.state.next_states() {
             let target_dist_estimate = next.board.amphipod_dists_to_targets();
-            previous.insert(next.board, current.state.board);
             heap.push(Reverse(SearchState { state: next, cost_estimate: next.energy + target_dist_estimate }));
         }
     }
