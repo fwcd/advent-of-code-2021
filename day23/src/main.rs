@@ -70,7 +70,7 @@ impl<const N: usize> Board<N> {
     fn enterable_rooms(self, i: usize, amphipod: char) -> impl Iterator<Item=(usize, usize)> {
         let x = target_x(amphipod);
         self.rooms[x].into_iter()
-            .filter(move |_| self.is_targeted_room(x) && self.hallway_free_in(i + (x_to_i(x) as i64 - i as i64).signum() as usize, x_to_i(x)))
+            .filter(move |_| self.is_targeted_room(x) && self.hallway_free_in((i as i64 + (x_to_i(x) as i64 - i as i64).signum()) as usize, x_to_i(x)))
             .enumerate()
             .filter(move |(_, o)| o.is_none())
             .last()
@@ -301,7 +301,7 @@ mod tests {
               #.#.#.#.#
               #########
         "#});
-        assert!(b1.leavable_rooms().collect::<Vec<_>>().is_empty());
+        assert!(b1.leavable_rooms().count() == 0);
 
         let b2 = parse_board::<2>(indoc! {r#"
             #############
@@ -326,6 +326,24 @@ mod tests {
         assert_eq!(b3.leavable_rooms().collect::<Vec<_>>(), vec![
             (2, 2, 'B'),
             (3, 0, 'A'),
+        ]);
+    }
+
+    #[test]
+    fn test_enterable_rooms() {
+        let b1 = parse_board::<5>(indoc! {r#"
+            #############
+            #....D....C.#
+            ###B#B#.#.###
+              #A#C#.#C#
+              #D#B#.#A#
+              #A#A#.#A#
+              #A#B#C#C#
+              #########
+        "#});
+        assert!(b1.enterable_rooms(4, 'D').count() == 0);
+        assert_eq!(b1.enterable_rooms(9, 'C').collect::<Vec<_>>(), vec![
+            (2, 3),
         ]);
     }
 }
