@@ -242,6 +242,7 @@ fn shortest_path<const N: usize>(start: Board<N>, target: Board<N>) -> u64 {
 fn main() {
     let raw = fs::read_to_string("resources/demo.txt").expect("No input file");
     let part1_start = Board::<2>::from_str(&raw).expect("Could not parse board");
+
     let part1 = shortest_path(part1_start, Board::target());
     println!("Part 1: {}", part1);
 
@@ -261,5 +262,6 @@ fn main() {
         }
     }
 
-    println!("{}", part2_start);
+    let part2 = shortest_path(part2_start, Board::target());
+    println!("Part 2: {}", part2);
 }
