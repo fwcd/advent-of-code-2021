@@ -103,11 +103,22 @@ impl<const N: usize> Board<N> {
 
     // Estimate distances for A* search
 
+    fn next_target_insert_y(self, x: usize, amphipod: char) -> usize {
+        self.rooms[x].into_iter()
+            .enumerate()
+            .rev()
+            .find(|&(_, o)| o != Some(amphipod))
+            .map(|o| o.0)
+            .unwrap_or(0)
+    }
+
     fn hallway_amphipods_dists_to_targets(self) -> u64 {
         self.hallway.into_iter()
             .enumerate()
-            // TODO: Provide better y estimate than 0
-            .filter_map(|(i, o)| o.map(|a| move_cost(i, target_x(a), 0, a)))
+            .filter_map(|(i, o)| o.map(|a| {
+                let tx = target_x(a);
+                move_cost(i, tx, self.next_target_insert_y(tx, a), a)
+            }))
             .sum()
     }
 
@@ -120,8 +131,7 @@ impl<const N: usize> Board<N> {
                 .filter_map(move |(y, o)| o.map(|a| {
                     let i = x_to_i(x);
                     let tx = target_x(a);
-                    // TODO: Provide better y estimate than 0
-                    move_cost(i, x, y, a) + move_cost(abs_diff(i, tx), tx, 0, a)
+                    move_cost(i, x, y, a) + move_cost(abs_diff(i, tx), self.next_target_insert_y(tx, a), 0, a)
                 })))
             .sum()
     }
