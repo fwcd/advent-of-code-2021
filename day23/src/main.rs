@@ -207,7 +207,6 @@ fn shortest_path(start: Board, target: Board) -> u64 {
     heap.push(Reverse(SearchState { state: State { board: start, energy: 0 }, cost_estimate: 0 }));
 
     while let Some(Reverse(current)) = heap.pop() {
-        println!("{}", current.state.board);
         if current.state.board == target {
             return current.state.energy;
         }
@@ -223,6 +222,18 @@ fn shortest_path(start: Board, target: Board) -> u64 {
 fn main() {
     let raw = fs::read_to_string("resources/demo.txt").expect("No input file");
     let start = Board::from_str(&raw).expect("Could not parse board");
-    let part1 = shortest_path(start, Board::target());
-    println!("Part 1: {}", part1);
+
+    // DEBUG
+    let mut current = start;
+    for _ in 0..2 {
+        for next in (State { board: current, energy: 0 }).next_states().into_iter() {
+            println!("Energy: {}", next.energy);
+            println!("{}", next.board);
+            current = next.board;
+        }
+        println!("============================");
+    }
+
+    // let part1 = shortest_path(start, Board::target());
+    // println!("Part 1: {}", part1);
 }
