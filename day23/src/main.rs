@@ -276,15 +276,56 @@ mod tests {
     use std::str::FromStr;
     use indoc::indoc;
 
+    fn parse_board<const N: usize>(s: &str) -> Board<N> {
+        Board::<N>::from_str(s).expect("Could not parse board")
+    }
+
     #[test]
     fn test_empty_board() {
-        let board = Board::<2>::from_str(indoc! {r#"
+        let board = parse_board::<2>(indoc! {r#"
             #############
             #...........#
             ###.#.#.#.###
               #.#.#.#.#
               #########
-        "#}).unwrap();
+        "#});
         assert_eq!(board, Board::empty());
+    }
+
+    #[test]
+    fn test_leavable_rooms() {
+        let b1 = parse_board::<2>(indoc! {r#"
+            #############
+            #...........#
+            ###.#.#.#.###
+              #.#.#.#.#
+              #########
+        "#});
+        assert!(b1.leavable_rooms().collect::<Vec<_>>().is_empty());
+
+        let b2 = parse_board::<2>(indoc! {r#"
+            #############
+            #...........#
+            ###.#C#.#.###
+              #A#B#.#A#
+              #########
+        "#});
+        assert_eq!(b2.leavable_rooms().collect::<Vec<_>>(), vec![
+            (1, 0, 'C'),
+            (3, 1, 'A'),
+        ]);
+
+        let b3 = parse_board::<3>(indoc! {r#"
+            #############
+            #..C.D......#
+            ###B#B#.#A###
+              #A#C#.#C#
+              #A#B#B#C#
+              #########
+        "#});
+        assert_eq!(b3.leavable_rooms().collect::<Vec<_>>(), vec![
+            (2, 2, 'B'),
+            (3, 0, 'A'),
+        ]);
     }
 }
