@@ -1,7 +1,7 @@
 use std::collections::BinaryHeap;
 use std::cmp::{Reverse, Ordering};
 use std::str::FromStr;
-use std::fs;
+use std::{fs, fmt};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 struct Board {
@@ -138,6 +138,25 @@ impl State {
     }
 }
 
+impl fmt::Display for Board {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let empty = '.';
+        for h in self.hallway.into_iter() {
+            write!(f, "{}", h.unwrap_or(empty))?;
+        }
+        writeln!(f)?;
+        for y in 0..self.rooms[0].len() {
+            write!(f, " ")?;
+            for x in 0..self.rooms.len() {
+                write!(f, " ")?;
+                write!(f, "{}", self.rooms[x][y].unwrap_or(empty))?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
+    }
+}
+
 impl FromStr for Board {
     type Err = ();
 
@@ -185,6 +204,7 @@ fn shortest_path(start: Board, target: Board) -> u64 {
     heap.push(Reverse(SearchState { state: State { board: start, energy: 0 }, cost_estimate: 0 }));
 
     while let Some(Reverse(current)) = heap.pop() {
+        println!("{}", current.state.board);
         if current.state.board == target {
             return current.state.energy;
         }
