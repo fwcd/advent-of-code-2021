@@ -29,8 +29,20 @@ fn cost(amphipod: char) -> u64 {
     }
 }
 
+fn target_amphipod(x: usize) -> char {
+    (x + ('A' as usize)) as u8 as char
+}
+
+fn target_x(amphipod: char) -> usize {
+    amphipod as usize - 'A' as usize
+}
+
+fn x_to_i(x: usize) -> usize {
+    2 * x + 2
+}
+
 fn move_cost(i: usize, x: usize, y: usize, amphipod: char) -> u64 {
-    (1 + y + abs_diff(2 * x + 2, i)) as u64 * cost(amphipod)
+    (1 + y + abs_diff(x_to_i(x), i)) as u64 * cost(amphipod)
 }
 
 impl Board {
@@ -52,18 +64,51 @@ impl Board {
     }
 
     fn enterable_rooms(self, amphipod: char) -> impl Iterator<Item=(usize, usize)> {
-        let x = amphipod as usize - 'A' as usize;
+        let x = target_x(amphipod);
         self.rooms[x].into_iter()
             .enumerate()
             .filter_map(move |(y, o)| if o.is_none() { Some((x, y)) } else { None })
     }
 
     fn enterable_hallway_spots(self, x: usize) -> impl Iterator<Item=usize> {
-        (0..self.hallway.len()).filter(move |&i| i != 2 * x + 2)
+        (0..self.hallway.len()).filter(move |&i| i != x_to_i(x))
     }
 
     fn leavable_hallway_spots(self) -> impl Iterator<Item=(usize, char)> {
         self.hallway.into_iter().enumerate().filter_map(|(i, o)| o.map(|a| (i, a)))
+    }
+
+    fn is_completed_room(self, x: usize) -> bool {
+        self.rooms[x] == [Some(target_amphipod(x)); 2]
+    }
+
+    // Estimate distances for A* search
+
+    fn hallway_amphipods_dists_to_targets(self) -> u64 {
+        self.hallway.into_iter()
+            .enumerate()
+            // TODO: Provide better y estimate than 0
+            .filter_map(|(i, o)| o.map(|a| move_cost(i, target_x(a), 0, a)))
+            .sum()
+    }
+
+    fn room_amphipods_dists_to_targets(self) -> u64 {
+        self.rooms.into_iter()
+            .enumerate()
+            .filter(|&(x, _)| !self.is_completed_room(x))
+            .flat_map(|(x, r)| r.into_iter()
+                .enumerate()
+                .filter_map(move |(y, o)| o.map(|a| {
+                    let i = x_to_i(x);
+                    let tx = target_x(a);
+                    // TODO: Provide better y estimate than 0
+                    move_cost(i, x, y, a) + move_cost(abs_diff(i, tx), tx, 0, a)
+                })))
+            .sum()
+    }
+
+    fn amphipod_dists_to_targets(self) -> u64 {
+        self.room_amphipods_dists_to_targets() + self.hallway_amphipods_dists_to_targets()
     }
 }
 
@@ -93,26 +138,6 @@ impl State {
     }
 }
 
-impl PartialEq for State {
-    fn eq(&self, other: &Self) -> bool {
-        self.energy == other.energy
-    }
-}
-
-impl Eq for State {}
-
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.energy.partial_cmp(&other.energy)
-    }
-}
-
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.energy.cmp(&other.energy)
-    }
-}
-
 impl FromStr for Board {
     type Err = ();
 
@@ -128,17 +153,44 @@ impl FromStr for Board {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
+struct SearchState {
+    state: State,
+    cost_estimate: u64,
+}
+
+impl PartialEq for SearchState {
+    fn eq(&self, other: &Self) -> bool {
+        self.cost_estimate == other.cost_estimate
+    }
+}
+
+impl Eq for SearchState {}
+
+impl PartialOrd for SearchState {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.cost_estimate.partial_cmp(&other.cost_estimate)
+    }
+}
+
+impl Ord for SearchState {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.cost_estimate.cmp(&other.cost_estimate)
+    }
+}
+
 fn shortest_path(start: Board, target: Board) -> u64 {
-    // Use Dijkstra search
-    let mut heap = BinaryHeap::<Reverse<State>>::new();
-    heap.push(Reverse(State { board: start, energy: 0 }));
+    // Use A* search
+    let mut heap = BinaryHeap::<Reverse<SearchState>>::new();
+    heap.push(Reverse(SearchState { state: State { board: start, energy: 0 }, cost_estimate: 0 }));
 
     while let Some(Reverse(current)) = heap.pop() {
-        if current.board == target {
-            return current.energy;
+        if current.state.board == target {
+            return current.state.energy;
         }
-        for next in current.next_states() {
-            heap.push(Reverse(next));
+        for next in current.state.next_states() {
+            let target_dist_estimate = next.board.amphipod_dists_to_targets();
+            heap.push(Reverse(SearchState { state: next, cost_estimate: next.energy + target_dist_estimate }));
         }
     }
 
