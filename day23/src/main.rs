@@ -1,4 +1,4 @@
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, HashMap};
 use std::cmp::{Reverse, Ordering};
 use std::str::FromStr;
 use std::{fs, fmt};
@@ -225,13 +225,21 @@ fn shortest_path(start: Board, target: Board) -> u64 {
     // Use A* search
     let mut heap = BinaryHeap::<Reverse<SearchState>>::new();
     heap.push(Reverse(SearchState { state: State { board: start, energy: 0 }, cost_estimate: 0 }));
+    let mut previous = HashMap::<Board, Board>::new();
 
     while let Some(Reverse(current)) = heap.pop() {
         if current.state.board == target {
+            let mut current_board = current.state.board;
+            println!("{}", current_board);
+            while let Some(next_board) = previous.get(&current_board) {
+                println!("{}", next_board);
+                current_board = *next_board;
+            }
             return current.state.energy;
         }
         for next in current.state.next_states() {
             let target_dist_estimate = next.board.amphipod_dists_to_targets();
+            previous.insert(next.board, current.state.board);
             heap.push(Reverse(SearchState { state: next, cost_estimate: next.energy + target_dist_estimate }));
         }
     }
@@ -242,24 +250,6 @@ fn shortest_path(start: Board, target: Board) -> u64 {
 fn main() {
     let raw = fs::read_to_string("resources/demo.txt").expect("No input file");
     let start = Board::from_str(&raw).expect("Could not parse board");
-
-    let mut step_paths = fs::read_dir("resources/demo-play").unwrap().map(|d| d.unwrap().path()).collect::<Vec<_>>();
-    let mut steps = Vec::new();
-    step_paths.sort();
-    for p in step_paths {
-        steps.push(Board::from_str(&fs::read_to_string(p).unwrap()).unwrap());
-    }
-
-    // DEBUG
-    let mut step_it = steps.into_iter();
-    let mut current = State { board: step_it.next().unwrap(), energy: 0 };
-    println!("{}", current.board);
-    while let Some(step) = step_it.next() {
-        let next = current.next_states().into_iter().find(|s| s.board == step).expect("No next state!");
-        println!("Energy: {}", next.energy);
-        println!("{}", next.board);
-        current = next;
-    }
 
     let part1 = shortest_path(start, Board::target());
     println!("Part 1: {}", part1);
