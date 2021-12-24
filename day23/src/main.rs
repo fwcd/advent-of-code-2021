@@ -72,7 +72,8 @@ impl Board {
         self.rooms[x].into_iter()
             .filter(move |_| self.is_targeted_room(x))
             .enumerate()
-            .filter_map(move |(y, o)| if o.is_none() { Some((x, y)) } else { None })
+            .skip_while(move |(_, o)| o.is_none())
+            .map(move |(y, _)| (x, y))
     }
 
     fn enterable_hallway_spots(self, x: usize) -> impl Iterator<Item=usize> {
@@ -215,6 +216,7 @@ fn shortest_path(start: Board, target: Board) -> u64 {
     heap.push(Reverse(SearchState { state: State { board: start, energy: 0 }, cost_estimate: 0 }));
 
     while let Some(Reverse(current)) = heap.pop() {
+        println!("Energy: {}", current.state.energy);
         if current.state.board == target {
             return current.state.energy;
         }
