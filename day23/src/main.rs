@@ -72,7 +72,9 @@ impl Board {
         self.rooms[x].into_iter()
             .filter(move |_| self.is_targeted_room(x))
             .enumerate()
-            .skip_while(move |(_, o)| o.is_none())
+            .filter(move |(_, o)| o.is_none())
+            .last()
+            .into_iter()
             .map(move |(y, _)| (x, y))
     }
 
