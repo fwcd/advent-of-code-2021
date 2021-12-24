@@ -1,15 +1,15 @@
 use std::str::FromStr;
-use std::{fs, fmt};
+use std::{fs, fmt, io};
 use std::ops::{Index, IndexMut};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-enum Ampiphod {
+enum Amphipod {
     A, B, C, D
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 enum Block {
-    Wall, Space, Ampiphod(Ampiphod)
+    Wall, Space, Amphipod(Amphipod)
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -17,6 +17,18 @@ struct Grid {
     elements: Vec<Block>,
     width: usize,
     height: usize,
+}
+
+#[derive(Clone, PartialEq, Eq, Hash)]
+struct State {
+    grid: Grid,
+    energy: usize,
+}
+
+#[derive(Clone, PartialEq, Eq, Hash)]
+struct Game {
+    start: Grid,
+    target: Grid
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -40,6 +52,17 @@ impl Pos {
     }
 }
 
+impl Grid {
+    fn from_file(path: &str) -> Result<Self, String> {
+        let raw = fs::read_to_string(path).map_err(|e| format!("Could not read file: {:?}", e))?;
+        Ok(Grid::from_str(&raw).unwrap())
+    }
+}
+
+impl Game {
+
+}
+
 impl Index<Pos> for Grid {
     type Output = Block;
 
@@ -54,13 +77,13 @@ impl IndexMut<Pos> for Grid {
     }
 }
 
-impl fmt::Display for Ampiphod {
+impl fmt::Display for Amphipod {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Ampiphod::A => write!(f, "A"),
-            Ampiphod::B => write!(f, "B"),
-            Ampiphod::C => write!(f, "C"),
-            Ampiphod::D => write!(f, "D"),
+            Amphipod::A => write!(f, "A"),
+            Amphipod::B => write!(f, "B"),
+            Amphipod::C => write!(f, "C"),
+            Amphipod::D => write!(f, "D"),
         }
     }
 }
@@ -70,7 +93,7 @@ impl fmt::Display for Block {
         match self {
             Block::Space => write!(f, "."),
             Block::Wall => write!(f, "#"),
-            Block::Ampiphod(amp) => write!(f, "{}", amp)
+            Block::Amphipod(amp) => write!(f, "{}", amp)
         }
     }
 }
@@ -97,10 +120,10 @@ impl From<char> for Block {
     fn from(raw: char) -> Block {
         match raw {
             '.' => Block::Space,
-            'A' => Block::Ampiphod(Ampiphod::A),
-            'B' => Block::Ampiphod(Ampiphod::B),
-            'C' => Block::Ampiphod(Ampiphod::C),
-            'D' => Block::Ampiphod(Ampiphod::D),
+            'A' => Block::Amphipod(Amphipod::A),
+            'B' => Block::Amphipod(Amphipod::B),
+            'C' => Block::Amphipod(Amphipod::C),
+            'D' => Block::Amphipod(Amphipod::D),
             _ => Block::Wall,
         }
     }
@@ -128,7 +151,8 @@ impl FromStr for Grid {
 }
 
 fn main() {
-    let raw_input = fs::read_to_string("resources/demo.txt").expect("No input");
-    let grid = Grid::from_str(&raw_input).expect("Invalid grid");
-    println!("{}", grid);
+    let start = Grid::from_file("resources/demo.txt").unwrap();
+    let target = Grid::from_file("resources/target.txt").unwrap();
+    let game = Game { start, target };
+    println!("{}", game.target);
 }
