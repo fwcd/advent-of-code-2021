@@ -1,4 +1,4 @@
-use std::collections::{BinaryHeap, HashSet};
+use std::collections::{BinaryHeap, HashSet, HashMap};
 use std::cmp::{Reverse, Ordering};
 use std::str::FromStr;
 use std::{fs, fmt};
@@ -226,17 +226,26 @@ fn shortest_path<const N: usize>(start: Board<N>, target: Board<N>) -> u64 {
     // Use A* search
     let mut heap = BinaryHeap::<Reverse<SearchState<N>>>::new();
     let mut visited = HashSet::new();
+    let mut previous = HashMap::<Board<N>, Board<N>>::new();
+
     heap.push(Reverse(SearchState { state: State { board: start, energy: 0 }, cost_estimate: 0 }));
 
     while let Some(Reverse(current)) = heap.pop() {
         visited.insert(current.state.board);
         if current.state.board == target {
             println!("Searched {} nodes", visited.len());
+            let mut current_board = current.state.board;
+            println!("{}", current_board);
+            while let Some(next_board) = previous.get(&current_board) {
+                println!("{}", next_board);
+                current_board = *next_board;
+            }
             return current.state.energy;
         }
         for next in current.state.next_states() {
             if !visited.contains(&next.board) {
                 let target_dist_estimate = next.board.amphipod_dists_to_targets();
+                previous.insert(next.board, current.state.board);
                 heap.push(Reverse(SearchState { state: next, cost_estimate: next.energy + target_dist_estimate }));
             }
         }
