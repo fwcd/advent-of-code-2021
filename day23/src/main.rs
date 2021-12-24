@@ -227,12 +227,12 @@ fn main() {
     let start = Board::from_str(&raw).expect("Could not parse board");
 
     // DEBUG
-    let mut current = start;
+    let mut current = State { board: start, energy: 0 };
     for _ in 0..2 {
-        for next in (State { board: current, energy: 0 }).next_states().into_iter() {
+        for next in current.next_states().into_iter() {
             println!("Energy: {}", next.energy);
             println!("{}", next.board);
-            current = next.board;
+            current = next;
         }
         println!("============================");
     }
