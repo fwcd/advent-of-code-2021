@@ -180,9 +180,13 @@ impl FromStr for Board {
     fn from_str(s: &str) -> Result<Self, ()> {
         let mut board = Board::empty();
         let lines: Vec<_> = s.lines().collect();
+        let empty = '.';
+        for i in 0..11 {
+            board.hallway[i] = Some(lines[1].as_bytes()[i + 1] as char).filter(|&a| a != empty);
+        }
         for x in 0..4 {
             for y in 0..2 {
-                board.rooms[x][y] = Some(lines[2 + y].as_bytes()[3 + 2 * x] as char);
+                board.rooms[x][y] = Some(lines[2 + y].as_bytes()[3 + 2 * x] as char).filter(|&a| a != empty);
             }
         }
         Ok(board)
@@ -237,15 +241,22 @@ fn main() {
     let raw = fs::read_to_string("resources/demo.txt").expect("No input file");
     let start = Board::from_str(&raw).expect("Could not parse board");
 
+    let mut step_paths = fs::read_dir("resources/demo-play").unwrap().map(|d| d.unwrap().path()).collect::<Vec<_>>();
+    let mut steps = Vec::new();
+    step_paths.sort();
+    for p in step_paths {
+        steps.push(Board::from_str(&fs::read_to_string(p).unwrap()).unwrap());
+    }
+
     // DEBUG
-    let mut current = State { board: start, energy: 0 };
-    for _ in 0..2 {
-        for next in current.next_states().into_iter() {
-            println!("Energy: {}", next.energy);
-            println!("{}", next.board);
-            current = next;
-        }
-        println!("============================");
+    let mut step_it = steps.into_iter();
+    let mut current = State { board: step_it.next().unwrap(), energy: 0 };
+    println!("{}", current.board);
+    while let Some(step) = step_it.next() {
+        let next = current.next_states().into_iter().find(|s| s.board == step).expect("No next state!");
+        println!("Energy: {}", next.energy);
+        println!("{}", next.board);
+        current = next;
     }
 
     let part1 = shortest_path(start, Board::target());
