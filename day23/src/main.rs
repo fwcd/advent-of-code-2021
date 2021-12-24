@@ -241,8 +241,25 @@ fn shortest_path<const N: usize>(start: Board<N>, target: Board<N>) -> u64 {
 
 fn main() {
     let raw = fs::read_to_string("resources/demo.txt").expect("No input file");
-    let start = Board::<2>::from_str(&raw).expect("Could not parse board");
-
-    let part1 = shortest_path(start, Board::target());
+    let part1_start = Board::<2>::from_str(&raw).expect("Could not parse board");
+    let part1 = shortest_path(part1_start, Board::target());
     println!("Part 1: {}", part1);
+
+    let middle_lines = [
+        [Some('D'), Some('D')],
+        [Some('C'), Some('B')],
+        [Some('B'), Some('A')],
+        [Some('A'), Some('C')],
+    ];
+    let mut part2_start = Board::<4>::empty();
+    
+    for (x, m) in middle_lines.into_iter().enumerate() {
+        part2_start.rooms[x][0] = part1_start.rooms[x][0];
+        part2_start.rooms[x][3] = part1_start.rooms[x][1];
+        for y in 0..2 {
+            part2_start.rooms[x][y + 1] = m[y];
+        }
+    }
+
+    println!("{}", part2_start);
 }
