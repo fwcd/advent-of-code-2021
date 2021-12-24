@@ -377,4 +377,42 @@ mod tests {
         assert_eq!(b1.enterable_hallway_spots(2).collect::<Vec<_>>(), vec![5, 7, 8]);
         assert_eq!(b1.enterable_hallway_spots(3).collect::<Vec<_>>(), vec![5, 6, 7]);
     }
+
+    #[test]
+    fn test_leavable_hallway_spots() {
+        let b1 = parse_board::<2>(indoc! {r#"
+            #############
+            #....D....C.#
+            ###B#B#.#.###
+              #A#B#C#C#
+              #########
+        "#});
+        assert_eq!(b1.leavable_hallway_spots().collect::<Vec<_>>(), vec![(4, 'D'), (9, 'C')]);
+    }
+
+    #[test]
+    fn test_is_targeted_room() {
+        let b1 = parse_board::<3>(indoc! {r#"
+            #############
+            #....D....C.#
+            ###.#.#.#.###
+              #A#.#C#C#
+              #B#.#C#C#
+              #########
+        "#});
+        assert_eq!((0..4).filter(|&x| b1.is_targeted_room(x)).collect::<Vec<_>>(), vec![1, 2]);
+    }
+
+    #[test]
+    fn test_is_completed_room() {
+        let b1 = parse_board::<3>(indoc! {r#"
+            #############
+            #....D....C.#
+            ###.#.#C#.###
+              #A#.#C#C#
+              #B#.#C#C#
+              #########
+        "#});
+        assert_eq!((0..4).filter(|&x| b1.is_completed_room(x)).collect::<Vec<_>>(), vec![2]);
+    }
 }
