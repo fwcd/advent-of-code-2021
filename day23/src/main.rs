@@ -1,3 +1,5 @@
+use std::collections::BinaryHeap;
+use std::cmp::{Reverse, Ordering};
 use std::str::FromStr;
 use std::fs;
 
@@ -7,7 +9,7 @@ struct Board {
     rooms: [[Option<char>; 2]; 4],
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone)]
 struct State {
     board: Board,
     energy: u64,
@@ -91,6 +93,26 @@ impl State {
     }
 }
 
+impl PartialEq for State {
+    fn eq(&self, other: &Self) -> bool {
+        self.energy == other.energy
+    }
+}
+
+impl Eq for State {}
+
+impl PartialOrd for State {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.energy.partial_cmp(&other.energy)
+    }
+}
+
+impl Ord for State {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.energy.cmp(&other.energy)
+    }
+}
+
 impl FromStr for Board {
     type Err = ();
 
@@ -106,14 +128,26 @@ impl FromStr for Board {
     }
 }
 
+fn shortest_path(start: Board, target: Board) -> u64 {
+    // Use Dijkstra search
+    let mut heap = BinaryHeap::<Reverse<State>>::new();
+    heap.push(Reverse(State { board: start, energy: 0 }));
+
+    while let Some(Reverse(current)) = heap.pop() {
+        if current.board == target {
+            return current.energy;
+        }
+        for next in current.next_states() {
+            heap.push(Reverse(next));
+        }
+    }
+
+    panic!("No shortest path found!");
+}
+
 fn main() {
     let raw = fs::read_to_string("resources/demo.txt").expect("No input file");
     let start = Board::from_str(&raw).expect("Could not parse board");
-
-    // DEBUG
-    println!("{:?}", start);
-    println!("Next:");
-    for next in (State { board: start, energy: 0 }.next_states().into_iter()) {
-        println!("(energy {}) {:?}", next.energy, next.board);
-    }
+    let part1 = shortest_path(start, Board::target());
+    println!("Part 1: {}", part1);
 }
