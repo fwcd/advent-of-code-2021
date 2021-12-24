@@ -60,7 +60,10 @@ impl Board {
     fn leavable_rooms(self) -> impl Iterator<Item=(usize, usize, char)> {
         self.rooms.into_iter()
             .enumerate()
+            // Skip any rooms that only contain target amphipods
             .filter(move |&(x, r)| r.into_iter().filter_map(|o| o).any(|a| a != target_amphipod(x)))
+            // Skip any rooms that are obstructed in the hallway
+            .filter(move |&(x, _)| self.hallway[x_to_i(x)].is_none())
             .filter_map(|(x, r)| r.into_iter().enumerate().find_map(|(y, o)| o.map(|a| (x, y, a))))
     }
 
