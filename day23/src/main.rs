@@ -346,4 +346,35 @@ mod tests {
             (2, 3),
         ]);
     }
+
+    #[test]
+    fn test_hallway_free() {
+        let b1 = parse_board::<2>(indoc! {r#"
+            #############
+            #....D....C.#
+            ###B#B#.#.###
+              #A#B#C#C#
+              #########
+        "#});
+        assert!(b1.hallway_free_in(0, 3));
+        assert!(b1.hallway_free_in(3, 0));
+        assert!(!b1.hallway_free_in(1, 4));
+        assert!(b1.hallway_free_in(5, 8));
+        assert!(!b1.hallway_free_in(11, 9));
+    }
+
+    #[test]
+    fn test_enterable_hallway_spots() {
+        let b1 = parse_board::<2>(indoc! {r#"
+            #############
+            #....D....C.#
+            ###B#B#.#.###
+              #A#B#C#C#
+              #########
+        "#});
+        assert_eq!(b1.enterable_hallway_spots(0).collect::<Vec<_>>(), vec![0, 1, 3]);
+        assert!(b1.enterable_hallway_spots(1).count() == 0);
+        assert_eq!(b1.enterable_hallway_spots(2).collect::<Vec<_>>(), vec![5, 7, 8]);
+        assert_eq!(b1.enterable_hallway_spots(3).collect::<Vec<_>>(), vec![5, 6, 7]);
+    }
 }
