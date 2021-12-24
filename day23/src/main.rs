@@ -1,4 +1,4 @@
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, HashSet};
 use std::cmp::{Reverse, Ordering};
 use std::str::FromStr;
 use std::{fs, fmt};
@@ -103,21 +103,12 @@ impl<const N: usize> Board<N> {
 
     // Estimate distances for A* search
 
-    fn next_target_insert_y(self, x: usize, amphipod: char) -> usize {
-        self.rooms[x].into_iter()
-            .enumerate()
-            .rev()
-            .find(|&(_, o)| o != Some(amphipod))
-            .map(|o| o.0)
-            .unwrap_or(0)
-    }
-
     fn hallway_amphipods_dists_to_targets(self) -> u64 {
         self.hallway.into_iter()
             .enumerate()
             .filter_map(|(i, o)| o.map(|a| {
                 let tx = target_x(a);
-                move_cost(i, tx, self.next_target_insert_y(tx, a), a)
+                move_cost(i, tx, 0, a)
             }))
             .sum()
     }
@@ -131,7 +122,7 @@ impl<const N: usize> Board<N> {
                 .filter_map(move |(y, o)| o.map(|a| {
                     let i = x_to_i(x);
                     let tx = target_x(a);
-                    move_cost(i, x, y, a) + move_cost(abs_diff(i, tx), self.next_target_insert_y(tx, a), 0, a)
+                    move_cost(i, x, y, a) + move_cost(abs_diff(i, tx), 0, 0, a)
                 })))
             .sum()
     }
@@ -234,15 +225,20 @@ impl<const N: usize> Ord for SearchState<N> {
 fn shortest_path<const N: usize>(start: Board<N>, target: Board<N>) -> u64 {
     // Use A* search
     let mut heap = BinaryHeap::<Reverse<SearchState<N>>>::new();
+    let mut visited = HashSet::new();
     heap.push(Reverse(SearchState { state: State { board: start, energy: 0 }, cost_estimate: 0 }));
 
     while let Some(Reverse(current)) = heap.pop() {
+        visited.insert(current.state.board);
         if current.state.board == target {
+            println!("Searched {} nodes", visited.len());
             return current.state.energy;
         }
         for next in current.state.next_states() {
-            let target_dist_estimate = next.board.amphipod_dists_to_targets();
-            heap.push(Reverse(SearchState { state: next, cost_estimate: next.energy + target_dist_estimate }));
+            if !visited.contains(&next.board) {
+                let target_dist_estimate = next.board.amphipod_dists_to_targets();
+                heap.push(Reverse(SearchState { state: next, cost_estimate: next.energy + target_dist_estimate }));
+            }
         }
     }
 
