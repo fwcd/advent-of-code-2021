@@ -61,7 +61,7 @@ impl Board {
         self.rooms.into_iter()
             .enumerate()
             // Skip any rooms that only contain target amphipods
-            .filter(move |&(x, r)| r.into_iter().filter_map(|o| o).any(|a| a != target_amphipod(x)))
+            .filter(move |&(x, _)| !self.is_targeted_room(x))
             // Skip any rooms that are obstructed in the hallway
             .filter(move |&(x, _)| self.hallway[x_to_i(x)].is_none())
             .filter_map(|(x, r)| r.into_iter().enumerate().find_map(|(y, o)| o.map(|a| (x, y, a))))
@@ -70,6 +70,7 @@ impl Board {
     fn enterable_rooms(self, amphipod: char) -> impl Iterator<Item=(usize, usize)> {
         let x = target_x(amphipod);
         self.rooms[x].into_iter()
+            .filter(move |_| self.is_targeted_room(x))
             .enumerate()
             .filter_map(move |(y, o)| if o.is_none() { Some((x, y)) } else { None })
     }
@@ -82,6 +83,10 @@ impl Board {
 
     fn leavable_hallway_spots(self) -> impl Iterator<Item=(usize, char)> {
         self.hallway.into_iter().enumerate().filter_map(|(i, o)| o.map(|a| (i, a)))
+    }
+
+    fn is_targeted_room(self, x: usize) -> bool {
+        self.rooms[x].into_iter().filter_map(|o| o).all(|a| a == target_amphipod(x))
     }
 
     fn is_completed_room(self, x: usize) -> bool {
@@ -237,6 +242,6 @@ fn main() {
         println!("============================");
     }
 
-    // let part1 = shortest_path(start, Board::target());
-    // println!("Part 1: {}", part1);
+    let part1 = shortest_path(start, Board::target());
+    println!("Part 1: {}", part1);
 }
