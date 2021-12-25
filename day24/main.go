@@ -97,7 +97,8 @@ func main() {
 	// ws[12] == ws[11] - 4
 	// ws[13] == ws[10]
 	//
-	// Now we simply take 99999999999999 and apply the constraints by hand:
+	// Now we simply take 99999999999999 and apply the constraints by hand, taking
+	// care that we adjust numbers to be between 1 and 9 (inclusively):
 	//
 	// ws[0] arbitrary   => set ws[0] = 9
 	// ws[1] arbitrary   => set ws[1] = 9
@@ -108,4 +109,10 @@ func main() {
 	// 94399898949959
 
 	fmt.Printf("Part 1 Check: %d\n", compute([]int{9, 4, 3, 9, 9, 8, 9, 8, 9, 4, 9, 9, 5, 9}, params))
+
+	// Same principle for part 2, just starting with 11111111111111:
+	//
+	// 21176121611511
+
+	fmt.Printf("Part 2 Check: %d\n", compute([]int{2, 1, 1, 7, 6, 1, 2, 1, 6, 1, 1, 5, 1, 1}, params))
 }
