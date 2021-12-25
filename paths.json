@@ -94,5 +94,9 @@
   {
     "lang": "go",
     "path": "day24/main.go"
+  },
+  {
+    "lang": "dart",
+    "path": "day25/bin/day25.dart"
   }
 ]
