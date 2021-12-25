@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -26,6 +27,14 @@ func step(w int, z int, params MONADParams) int {
 	}
 }
 
+func compute(ws []int, params []MONADParams) int {
+	z := 0
+	for i := range ws {
+		z = step(ws[i], z, params[i])
+	}
+	return z
+}
+
 func parseOperand(line string) int {
 	xs := strings.Split(line, " ")
 	x, err := strconv.Atoi(xs[len(xs)-1])
@@ -48,4 +57,5 @@ func main() {
 		params = append(params, MONADParams{q, a, b})
 	}
 
+	fmt.Printf("%d\n", compute([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}, params))
 }
