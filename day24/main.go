@@ -21,13 +21,13 @@ func check(err error) {
 func step(w int, z int, params MONADParams) int {
 	var x int
 
-	if ((z%26)/params.q + params.a) != w {
+	if (z%26 + params.a) != w {
 		x = 1
 	} else {
 		x = 0
 	}
 
-	return z*(25*x+1) + (w+params.b)*x
+	return (z/params.q)*(25*x+1) + (w+params.b)*x
 }
 
 func parseOperand(line string) int {
@@ -51,4 +51,5 @@ func main() {
 		b := parseOperand(lines[i+15])
 		params = append(params, MONADParams{q, a, b})
 	}
+
 }
