@@ -1,4 +1,4 @@
-use std::collections::{BinaryHeap, HashSet};
+use std::collections::{BinaryHeap, HashSet, HashMap};
 use std::cmp::{Reverse, Ordering};
 use std::str::FromStr;
 use std::{fs, fmt};
@@ -41,6 +41,10 @@ fn x_to_i(x: usize) -> usize {
     2 * x + 2
 }
 
+fn is_immediately_outside_room(i: usize) -> bool {
+    [2, 4, 6, 8].contains(&i)
+}
+
 fn move_cost(i: usize, x: usize, y: usize, amphipod: char) -> u64 {
     (1 + y + abs_diff(x_to_i(x), i)) as u64 * cost(amphipod)
 }
@@ -70,7 +74,7 @@ impl<const N: usize> Board<N> {
     fn enterable_rooms(self, i: usize, amphipod: char) -> impl Iterator<Item=(usize, usize)> {
         let x = target_x(amphipod);
         self.rooms[x].into_iter()
-            .filter(move |_| self.is_targeted_room(x) && self.hallway_free_in((i as i64 + (x_to_i(x) as i64 - i as i64).signum()) as usize, x_to_i(x)))
+            .filter(move |_| self.is_targeted_room(x) && self.is_hallway_free_in((i as i64 + (x_to_i(x) as i64 - i as i64).signum()) as usize, x_to_i(x)))
             .enumerate()
             .filter(move |(_, o)| o.is_none())
             .last()
@@ -78,7 +82,7 @@ impl<const N: usize> Board<N> {
             .map(move |(y, _)| (x, y))
     }
 
-    fn hallway_free_in(self, i1: usize, i2: usize) -> bool {
+    fn is_hallway_free_in(self, i1: usize, i2: usize) -> bool {
         (i1.min(i2)..=i1.max(i2))
             .all(|i| self.hallway[i].is_none())
     }
@@ -86,7 +90,8 @@ impl<const N: usize> Board<N> {
     fn enterable_hallway_spots(self, x: usize) -> impl Iterator<Item=usize> {
         self.hallway.into_iter()
             .enumerate()
-            .filter_map(move |(i, _)| if i != x_to_i(x) && self.hallway_free_in(i, x_to_i(x)) { Some(i) } else { None })
+            .filter(move |&(i, _)| !is_immediately_outside_room(i) && self.is_hallway_free_in(i, x_to_i(x)))
+            .map(|(i, _)| i)
     }
 
     fn leavable_hallway_spots(self) -> impl Iterator<Item=(usize, char)> {
@@ -356,11 +361,11 @@ mod tests {
               #A#B#C#C#
               #########
         "#});
-        assert!(b1.hallway_free_in(0, 3));
-        assert!(b1.hallway_free_in(3, 0));
-        assert!(!b1.hallway_free_in(1, 4));
-        assert!(b1.hallway_free_in(5, 8));
-        assert!(!b1.hallway_free_in(11, 9));
+        assert!(b1.is_hallway_free_in(0, 3));
+        assert!(b1.is_hallway_free_in(3, 0));
+        assert!(!b1.is_hallway_free_in(1, 4));
+        assert!(b1.is_hallway_free_in(5, 8));
+        assert!(!b1.is_hallway_free_in(11, 9));
     }
 
     #[test]
@@ -374,8 +379,8 @@ mod tests {
         "#});
         assert_eq!(b1.enterable_hallway_spots(0).collect::<Vec<_>>(), vec![0, 1, 3]);
         assert!(b1.enterable_hallway_spots(1).count() == 0);
-        assert_eq!(b1.enterable_hallway_spots(2).collect::<Vec<_>>(), vec![5, 7, 8]);
-        assert_eq!(b1.enterable_hallway_spots(3).collect::<Vec<_>>(), vec![5, 6, 7]);
+        assert_eq!(b1.enterable_hallway_spots(2).collect::<Vec<_>>(), vec![5, 7]);
+        assert_eq!(b1.enterable_hallway_spots(3).collect::<Vec<_>>(), vec![5, 7]);
     }
 
     #[test]
