@@ -90,5 +90,9 @@
   {
     "lang": "rust",
     "path": "day23/src/main.rs"
+  },
+  {
+    "lang": "go",
+    "path": "day24/main.go"
   }
 ]

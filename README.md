@@ -25,7 +25,7 @@ My solutions to the [Advent of Code 2021](https://adventofcode.com/2021), writte
 - [x] Day 21: F#
 - [x] Day 22: JavaScript
 - [x] Day 23: Rust
-- [ ] Day 24
+- [x] Day 24: Go
 - [ ] Day 25
 
 ## See also
