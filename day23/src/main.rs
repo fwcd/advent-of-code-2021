@@ -237,11 +237,13 @@ fn shortest_path<const N: usize>(start: Board<N>, target: Board<N>) -> u64 {
     while let Some(Reverse(current)) = heap.pop() {
         visited.insert(current.state.board);
         if current.state.board == target {
+            println!("Searched {} nodes", visited.len());
             return current.state.energy;
         }
         for next in current.state.next_states() {
             if !visited.contains(&next.board) {
-                heap.push(Reverse(SearchState { state: next, cost_estimate: next.energy }));
+                let estimate = next.board.amphipod_dists_to_targets();
+                heap.push(Reverse(SearchState { state: next, cost_estimate: next.energy + estimate }));
             }
         }
     }
@@ -250,7 +252,7 @@ fn shortest_path<const N: usize>(start: Board<N>, target: Board<N>) -> u64 {
 }
 
 fn main() {
-    let raw = fs::read_to_string("resources/demo.txt").expect("No input file");
+    let raw = fs::read_to_string("resources/input.txt").expect("No input file");
     let part1_start = Board::<2>::from_str(&raw).expect("Could not parse board");
 
     let part1 = shortest_path(part1_start, Board::target());
